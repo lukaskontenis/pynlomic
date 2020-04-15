@@ -3,5 +3,5 @@
 A Python library for nonlinear microscopy and polarimetry.
 
 Author: Lukas Kontenis
-Copyright 2020 Light Conversion
+Copyright 2015-2020 Light Conversion
 Contact: lukas.kontenis@lightcon.com, dse.ssd@gmail.com

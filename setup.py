@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="lcmicro", # Replace with your own username
+    name="lcmicro",
     version="0.0.1",
     author="Lukas Kontenis",
     author_email="dse.ssd@gmail.com",
