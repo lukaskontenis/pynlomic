@@ -11,8 +11,6 @@ being a part of the Barzda group at the University of Toronto in 2011-2017.
 Copyright 2015-2020 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
-from enum import Enum
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -22,52 +20,12 @@ from lklib.cfgparse import read_cfg
 from lklib.image import crop_rem_rrcc, corr_field_illum, get_frac_sat_rng, \
     remap_img, bake_cmap, gen_preview_img
 
+from lcmicro.common import DataType, MosaicType
 from lcmicro.cfgparse import get_idx_mask, get_scan_field_size, \
     get_scan_frame_time, get_scan_px_sz, get_px_time, get_ex_rep_rate, \
     get_cfg_range, get_cfg_gamma, get_data_type, get_nl_ord, \
     get_def_chan_idx, get_px_cnt_limit, get_px_bckgr_count, get_idx_ts_ms, \
     get_idx_z_pos, get_chan_name, get_chan_filter_name
-from lcmicro.tiling import get_tiling_data
-
-class ImageStats:
-    """Image statistics base class."""
-    Type = None
-
-class VoltageImageStats(ImageStats):
-    """Voltage image statistics enum."""
-    MinLevel = None
-    AvgLevel = None
-    MaxLevel = None
-
-class CountImageStats(ImageStats):
-    """Count image statistics enum."""
-    TotalCount = None
-    MaxCount = None
-
-class DetectorType(Enum):
-    """Detector type enum."""
-    Counter = 1
-    Voltage = 2
-
-class MosaicType(Enum):
-    """Mosaic time enum."""
-    TimeSeries = 1
-    ZStack = 2
-
-class DataType(Enum):
-    """Data file type enum."""
-    Invalid = 0
-    SingleImage = 1
-    Average = 2
-    TimeLapse = 3
-    ZStack = 4
-    Tiling = 5
-
-class PixelCountLimit(Enum):
-    """Pixel count limit enum."""
-    RepRate = None
-    SinglePulse = None
-    CountLinearity = None
 
 def get_chan_frames(data=None, config=None, chan=2):
     """Get frames from the specified channel."""
@@ -123,19 +81,7 @@ def get_def_chan_cmap(config, ch=2):
     else:
         return get_def_cmap(get_chan_filter_name(config, chan=ch))
 
-def get_data_type_str(dtype):
-    """Return the name of the data type as a string."""
-    if dtype == DataType.SingleImage:
-        return "Singe image"
-    if dtype == DataType.Average:
-        return "Average"
-    if dtype == DataType.TimeLapse:
-        return "Time lapse"
-    if dtype == DataType.Tiling:
-        return "Tiling"
-    if dtype == DataType.ZStack:
-        return "Z Stack"
-    return "INVALID DATA TYPE"
+
 
 def get_def_cmap(chan_str=None):
     """Get the default colourmap based on the channel description."""
@@ -356,12 +302,23 @@ def get_opt_map_rng(img=None, data=None, file_name=None, mask=None, ij=None):
     dtype = get_data_type(file_name=file_name)
 
     if dtype == DataType.Tiling:
-        print("Crating dummy mosaic...")
-        # TODO: This does not require ij indices. Remove requirement. # pylint: disable=W0511
-        if isnone(data) or isnone(mask) or isnone(ij):
-            [data, mask, ij] = get_tiling_data(data=data, file_name=file_name)
+        # Using the tiling module results in a circular import. There are
+        # several options available to avoid that:
+        #   1) a data container class would hide the implementation of the
+        #       range estimation, but this requires a big code overhaul
+        #   2) range estimation could be a part of a different module that
+        #       imports both tiling and proc
+        #   3) basic mosaicing shouldn't require tiling functionality as the
+        #       images simply have to be placed side by side. make_mosaic()
+        #       should do that for multichannel data
+        print("Range estimation for tiled images doesn't yet work")
+        return None
 
-        img = make_mosaic_img(data, mask, ij, remap=False)
+        #print("Crating dummy mosaic...")
+        # TODO: This does not require ij indices. Remove requirement. # pylint: disable=W0511
+        #if isnone(data) or isnone(mask) or isnone(ij):
+            #[data, mask, ij] = get_tiling_data(data=data, file_name=file_name)
+        #img = make_mosaic_img(data, mask, ij, remap=False)
 
     print("Determining optimal mapping range...")
     rng = get_frac_sat_rng(img)

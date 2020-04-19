@@ -26,8 +26,9 @@ from lklib.plot import export_figure
 from lklib.trace import trace_set_param, get_pharos_log_trace
 from lklib.report import MakeSVGReport, ConvertSVGToPDF
 
-from lcmicro.proc import DataType, DetectorType, CountImageStats, VoltageImageStats, \
-    make_image, make_composite_img, get_sat_mask, get_opt_map_rng, proc_img
+from lcmicro.common import DataType, DetectorType, CountImageStats, VoltageImageStats
+from lcmicro.proc import make_image, make_composite_img, get_sat_mask, \
+    get_opt_map_rng, proc_img
 from lcmicro.cfgparse import get_sample_name, get_chan_name, get_laser_name, \
     get_ex_wavl, get_ex_power, get_def_chan_idx, get_chan_det_type, \
     get_chan_units, get_scan_frame_time, get_px_time, get_scan_field_size, \

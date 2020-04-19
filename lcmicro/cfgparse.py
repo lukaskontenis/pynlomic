@@ -19,7 +19,9 @@ from lklib.util import isnone, isarray
 from lklib.string import timestamp_str_to_seconds, make_human_time_str
 from lklib.cfgparse import read_cfg, get_cfg_section, get_head_val
 
-from lcmicro.proc import DetectorType, PixelCountLimit, DataType, get_data_type_str
+from lcmicro.common import DetectorType, PixelCountLimit, DataType, \
+     get_data_type_str
+
 
 def get_sample_name(config):
     """Get the name of the sample."""
