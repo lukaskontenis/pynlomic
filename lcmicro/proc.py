@@ -195,7 +195,7 @@ def get_scan_artefact_sz(file_name=None, config=None):
 
 def crop_scan_artefacts(img, config):
     """Crop away the sides of the image corrupted by galvo-scanning artefacts."""
-    crop_sz_px = get_scan_artefact_sz(config)
+    crop_sz_px = get_scan_artefact_sz(config=config)
     img = crop_rem_rrcc(img, 0, 0, crop_sz_px, 0)
     return img
 
