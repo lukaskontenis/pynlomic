@@ -13,13 +13,30 @@ Copyright 2015-2020 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 import numpy as np
-from numpy import zeros, sin, cos, pi, matrix
+from numpy import zeros, sin, cos, pi
 import matplotlib.pyplot as plt
 
 from lklib.util import isstring
 
 
-def rot_mueller_mat(mat, theta):
+def col_vec(arr):
+    """Make an ndarray column vector."""
+    vec = np.array(arr)
+    vec.shape = (len(vec), 1)
+    return vec
+
+def get_eps():
+    """Get the floating point math precision."""
+    return np.finfo('float64').eps
+
+def tensor_eq(tns1, tns2):
+    """Check if two tensors are equal within the floating point precision.
+
+    Works for vectors and matrices too.
+    """
+    return (np.abs(tns1 - tns2) <= get_eps()).all()
+
+def rot_mueller_mat(mat, theta=0):
     """Get a rotated Mueller matrix."""
     mat_rot = zeros([4, 4])
 
@@ -32,9 +49,9 @@ def rot_mueller_mat(mat, theta):
 
     mat_rot[3, 3] = 1
 
-    return mat_rot * mat * mat_rot.transpose()
+    return mat_rot @ mat @ mat_rot.transpose()
 
-def get_mueller_mat(element, theta, *args):
+def get_mueller_mat(element, theta=0, **kwargs):
     """Get the Mueller matrix of ``element``.
 
     The element can be rotated by angle ``theta``. The ``PolD`` diattenuating
@@ -43,20 +60,22 @@ def get_mueller_mat(element, theta, *args):
     """
     mat = zeros([4, 4])
 
-    if element == "HWP":
+    element = element.lower()
+
+    if element == "hwp":
         mat[0, 0] = 1
         mat[1, 1] = 1
         mat[2, 2] = -1
         mat[3, 3] = -1
 
-    elif element == "QWP":
+    elif element == "qwp":
         mat[0, 0] = 1
         mat[1, 1] = 1
         mat[2, 3] = 1
         mat[3, 2] = -1
 
-    elif element in ("RTD", "Retarder"):
-        d = args[0] # pylint: disable=C0103
+    elif element in ("rtd", "retarder"):
+        d = kwargs.get('d', 0) # pylint: disable=C0103
         c = cos(d) # pylint: disable=C0103
         s = sin(d) # pylint: disable=C0103
 
@@ -67,14 +86,14 @@ def get_mueller_mat(element, theta, *args):
         mat[3, 2] = -s
         mat[3, 3] = c
 
-    elif element in ("POL", "Polarizer"):
+    elif element in ("pol", "polarizer"):
         mat[0, 0] = 1
         mat[0, 1] = 1
         mat[1, 0] = 1
         mat[1, 1] = 1
         mat = mat*0.5
 
-    elif element in ("Unity", "Empty", "NOP"):
+    elif element in ("unity", "empty", "nop"):
         mat[0, 0] = 1
         mat[1, 1] = 1
         mat[2, 2] = 1
@@ -83,7 +102,7 @@ def get_mueller_mat(element, theta, *args):
     else:
         print("Element ''{:s}'' not defined".format(element))
 
-    mat = matrix(mat)
+    #mat = matrix(mat)
     mat = rot_mueller_mat(mat, theta)
 
     return mat
@@ -98,16 +117,23 @@ def get_stokes_vec(state):
         gamma = state / 180 * pi
         omega = 0
     else:
-        if state == "HLP":
+        state = state.lower()
+        if state == "hlp":
             gamma = 0
             omega = 0
-        elif state == "VLP":
+        elif state == "vlp":
             gamma = pi/2
             omega = 0
-        elif state == "RCP":
+        elif state == "+45":
+            gamma = pi/4
+            omega = 0
+        elif state == "-45":
+            gamma = -pi/4
+            omega = 0
+        elif state == "rcp":
             gamma = 0
             omega = pi/4
-        elif state == "LCP":
+        elif state == "lcp":
             gamma = 0
             omega = -pi/4
         else:
@@ -117,7 +143,9 @@ def get_stokes_vec(state):
     svec[1] = cos(2*gamma) * cos(2*omega)
     svec[2] = sin(2*gamma) * cos(2*omega)
     svec[3] = sin(2*omega)
-    svec = matrix(svec)
+
+    svec.shape = (4, 1)
+    #svec = matrix(svec)
 
     return svec
 
