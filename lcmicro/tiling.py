@@ -1,7 +1,4 @@
-"""
-=== lcmicro ===
-
-A Python library for nonlinear microscopy and polarimetry.
+"""lcmicro - a Python library for nonlinear microscopy and polarimetry.
 
 This module contains image tiling routines
 
@@ -15,14 +12,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from lklib.util import isnone, handle_general_exception
-from lklib.fileread import list_files_with_extension, read_bin_file, rem_extension
+from lklib.fileread import list_files_with_extension, read_bin_file, \
+     rem_extension
 from lklib.cfgparse import read_cfg
 from lklib.image import normalize, tile_img, tile_img_blind, save_img
 
 from lcmicro.proc import proc_img, get_scan_artefact_sz
-from lcmicro.cfgparse import get_idx_mask, get_stage_pos, get_stage_xyz_pos, get_tiling_cfg
+from lcmicro.cfgparse import get_idx_mask, get_stage_pos, get_stage_xyz_pos, \
+    get_tiling_cfg
 
-def get_tile_stage_xyz_pos(config=None, file_name=None, force_reconstruct=False):
+
+def get_tile_stage_xyz_pos(config=None, file_name=None,
+                           force_reconstruct=False):
     """Get the XYZ sample stage positions for individual tiles."""
     if isnone(config):
         config = read_cfg(file_name)
@@ -34,7 +35,8 @@ def get_tile_stage_xyz_pos(config=None, file_name=None, force_reconstruct=False)
         pos[ind, :] = get_stage_xyz_pos(config, index=index)
 
     if(force_reconstruct or (pos == 0).all()):
-        print("No tiling coordinates in index. Reconstructing from tiling config.")
+        print("No tiling coordinates in index. " +
+              "Reconstructing from tiling config.")
 
         [from_x, to_x, from_y, _, step] = get_tiling_cfg(config)
         num_x_tiles = int(np.ceil(np.abs(to_x - from_x))/step) + 1
@@ -48,16 +50,20 @@ def get_tile_stage_xyz_pos(config=None, file_name=None, force_reconstruct=False)
 
     return pos
 
+
 def get_tile_ij_idx(**kwargs):
     """Get tile ij indices from tile stage center positions."""
     bad_ij = False
     pos = get_tile_stage_xyz_pos(**kwargs)
     step = pos[1, 0] - pos[0, 0]
 
-    ij = np.ndarray([pos.shape[0], 2], dtype=np.int32) # pylint: disable=E1136  # pylint/issues/3139
+    # Pylint E1136 is a known issue - pylint/issues/3139.
+
+    ij = np.ndarray([pos.shape[0], 2], dtype=np.int32)  # pylint: disable=E1136
+
     # This is probably swapped axes since X is ind=0 in pos and row is ind=0
     # in ij. But since such a swap is required anyway, it all works out.
-    for ind in range(0, pos.shape[0]): # pylint: disable=E1136  # pylint/issues/3139
+    for ind in range(0, pos.shape[0]):  # pylint: disable=E1136
         ij[ind, 0] = int(np.round((pos[ind, 0] - pos[0, 0])/step))
         ij[ind, 1] = int(np.round((pos[ind, 1] - pos[0, 1])/step))
 
@@ -72,8 +78,8 @@ def get_tile_ij_idx(**kwargs):
 
     # Verify that there are no duplicate ij indices
     bad_ind = 0
-    for ind1 in range(0, ij.shape[0]): # pylint: disable=E1136  # pylint/issues/3139
-        for ind2 in range(ind1+1, ij.shape[0]): # pylint: disable=E1136  # pylint/issues/3139
+    for ind1 in range(0, ij.shape[0]):  # pylint: disable=E1136
+        for ind2 in range(ind1+1, ij.shape[0]):  # pylint: disable=E1136
             if (ij[ind1, :] == ij[ind2, :]).all():
                 bad_ind += 1
 
@@ -90,15 +96,18 @@ def get_tile_ij_idx(**kwargs):
     else:
         return ij
 
+
 def get_tiling_grid_sz(**kwargs):
     """Get tiling grid size."""
     ij = get_tile_ij_idx(**kwargs)
     return [max(ij[:, 0]), max(ij[:, 1])]
 
+
 def show_raw_tiled_img(file_name=None, data=None, rng=None, save_images=True):
     """Show tiled images arranged in a mosaic without including overlap.
 
-    Show tiles with correct tiling geometry but ignoring tiling step size and overlap.
+    Show tiles with correct tiling geometry but ignoring tiling step size and
+    overlap.
     """
     try:
         if isnone(data):
@@ -112,8 +121,9 @@ def show_raw_tiled_img(file_name=None, data=None, rng=None, save_images=True):
             save_img(
                 mosaic, ImageName=rem_extension(file_name) + "RawTiled",
                 cmap="viridis", bake_cmap=True)
-    except: # pylint: disable=W0702
+    except:  # pylint: disable=W0702
         handle_general_exception("Could not generate raw tiled image")
+
 
 def tile_imgs_sbs(file_names=None, path=None, sort_by_y=False):
     """Tile images side-by-side.
@@ -161,6 +171,7 @@ def get_tiling_data(data=None, file_name=None):
 
     return [data, mask, ij]
 
+
 def tile_images(
         data=None, file_name=None, img_sz=None, step_sz=None, rng=None,
         save_images=True, rng_override=None):
@@ -191,7 +202,7 @@ def tile_images(
     # crop the righ-hand side scan artefact which is not removed during blind
     # tiling
     crop_px = get_scan_artefact_sz(file_name=file_name)
-    img_tiled = img_tiled[:, :-crop_px] # pylint: disable=E1130 # pylint/issues/1472
+    img_tiled = img_tiled[:, :-crop_px]  # pylint: disable=E1130
 
     print("Displaying...")
     plt.clf()

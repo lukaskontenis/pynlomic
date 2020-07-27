@@ -1,7 +1,4 @@
-"""
-=== lcmicro ===
-
-A Python library for nonlinear microscopy and polarimetry.
+"""lcmicro - a Python library for nonlinear microscopy and polarimetry.
 
 This module contains routines for report generation.
 
@@ -19,25 +16,32 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 from lklib.util import isnone, isarray, handle_general_exception
-from lklib.fileread import list_files_with_filter, rem_extension, change_extension
+from lklib.fileread import list_files_with_filter, rem_extension, \
+    change_extension
 from lklib.cfgparse import read_cfg
-from lklib.image import remap_img, show_img, add_scale_bar, get_colourmap, get_img_sz, save_img
+from lklib.image import remap_img, show_img, add_scale_bar, get_colourmap, \
+     get_img_sz, save_img
 from lklib.plot import export_figure
 from lklib.trace import trace_set_param, get_pharos_log_trace
 from lklib.report import MakeSVGReport, ConvertSVGToPDF
 
-from lcmicro.common import DataType, DetectorType, CountImageStats, VoltageImageStats
+from lcmicro.common import DataType, DetectorType, CountImageStats, \
+    VoltageImageStats
 from lcmicro.proc import make_image, make_composite_img, get_sat_mask, \
     get_opt_map_rng, proc_img
 from lcmicro.cfgparse import get_sample_name, get_chan_name, get_laser_name, \
     get_ex_wavl, get_ex_power, get_def_chan_idx, get_chan_det_type, \
     get_chan_units, get_scan_frame_time, get_px_time, get_scan_field_size, \
     get_tiling_step, get_scan_px_sz, get_scan_date, get_operator_name, \
-    get_sampe_id, get_sample_area_label, validate_chan_idx, get_cfg_range, get_data_type
-from lcmicro.tiling import get_tiling_grid_sz, get_tiling_data, show_raw_tiled_img, tile_images
+    get_sampe_id, get_sample_area_label, validate_chan_idx, get_cfg_range, \
+    get_data_type
+from lcmicro.tiling import get_tiling_grid_sz, get_tiling_data, \
+    show_raw_tiled_img, tile_images
 from lcmicro.stab import get_stab_traces
 
-def make_img_title(config, template="fig", chan=None, print_exw=False, chas=None):
+
+def make_img_title(config, template="fig", chan=None, print_exw=False,
+                   chas=None):
     """Make an image title string."""
     chan_name_str = None
 
@@ -57,9 +61,9 @@ def make_img_title(config, template="fig", chan=None, print_exw=False, chas=None
             if not isnone(wavl) or not isnone(pwr):
                 title_str = title_str + ", Ex. "
             if not isnone(wavl):
-                title_str = title_str + "%.2f um" %(wavl)
+                title_str = title_str + "{:.2f} um".format(wavl)
             if not isnone(pwr):
-                title_str = title_str + "%.1f mW" %(pwr)
+                title_str = title_str + "{:.1f} mW".format(pwr)
         if chan is not None:
             if isarray(chan_name_str):
                 chan_pre = ["R: ", "G: ", "B: "]
@@ -85,7 +89,7 @@ def make_img_title(config, template="fig", chan=None, print_exw=False, chas=None
         if not isnone(wavl):
             title_str = title_str + ', Ex. ' + str(wavl) + ' um'
     else:
-        print("Unsupported title template ''%s''" %template)
+        print("Unsupported title template ''{:s}''".format(template))
         title_str = None
 
     return title_str
@@ -105,8 +109,7 @@ def make_caption_str(
         numd = len(config)
         chan_pre = ["R: ", "G: ", "B: "]
         for indd in range(numd):
-            caption_str = caption_str + chan_pre[indd] \
-            + make_caption_str(
+            caption_str = caption_str + chan_pre[indd] + make_caption_str(
                 config[indd], rng=rng[indd], gamma=gamma[indd]) + '\n'
 
         caption_str = caption_str + 'bar = ' + str(scalebar_sz) + " um "
@@ -115,21 +118,21 @@ def make_caption_str(
 
     caption_str = ''
 
-    caption_str = caption_str + "Ch: %d" %(ch_ind)
+    caption_str = caption_str + "Ch: {:d}".format(ch_ind)
 
     if rng is not None:
         if ch_type == DetectorType.Counter:
-            rng_str = "[%d, %d]" %(rng[0], rng[1])
+            rng_str = "[{:d}, {:d}]".format(rng[0], rng[1])
         elif ch_type == DetectorType.Voltage:
-            rng_str = "[%.1f, %.1f]" %(rng[0], rng[1])
+            rng_str = "[{:.1f}, {:.1f}]".format(rng[0], rng[1])
         caption_str = caption_str + \
-            ", range: %s %s" %(rng_str, get_chan_units(ch_type))
+            ", range: {:s} {:s}".format(rng_str, get_chan_units(ch_type))
 
     if rng is not None:
         if gamma == 1:
             caption_str = caption_str + ", gamma: 1"
         else:
-            caption_str = caption_str + ", gamma = %1.1f" % (gamma)
+            caption_str = caption_str + ", gamma = {:1.1f}".format(gamma)
 
     if cmap is not None:
         caption_str = caption_str + ", cmap: " + cmap
@@ -140,17 +143,22 @@ def make_caption_str(
     if ch_type == DetectorType.Counter:
         if image_stats.TotalCount is not None:
             frame_t = get_scan_frame_time(config)
-            caption_str = caption_str + "\nAvg: %.2f Mcps" %(image_stats.TotalCount/frame_t/1E6)
+            caption_str = caption_str + "\nAvg: {:.2f} Mcps".format(
+                image_stats.TotalCount/frame_t/1E6)
         if image_stats.MaxCount is not None:
             px_t = get_px_time(config)
-            caption_str = caption_str + ", max = %.2f Mcps" %(image_stats.MaxCount/px_t/1E6)
+            caption_str = caption_str + ", max = {:.2f} Mcps".format(
+                image_stats.MaxCount/px_t/1E6)
     elif ch_type == DetectorType.Voltage:
         if not isnone(image_stats.MinLevel):
-            caption_str = caption_str + "\nMin: %.2f V" %(image_stats.MinLevel)
+            caption_str = caption_str + "\nMin: {:.2f} V".format(
+                image_stats.MinLevel)
         if not isnone(image_stats.AvgLevel):
-            caption_str = caption_str + ", avg: %.2f V" %(image_stats.AvgLevel)
+            caption_str = caption_str + ", avg: {:.2f} V".format(
+                image_stats.AvgLevel)
         if not isnone(image_stats.MaxLevel):
-            caption_str = caption_str + ", max: %.2f V" %(image_stats.MaxLevel)
+            caption_str = caption_str + ", max: {:.2f} V".format(
+                image_stats.MaxLevel)
 
     if template == "report":
         caption_str = caption_str + '\n'
@@ -162,50 +170,50 @@ def make_caption_str(
 
         tiling_grid_sz = get_tiling_grid_sz(config=config)
         if not isnone(tiling_grid_sz):
-            caption_str = caption_str + ', %dx%d grid' %(tiling_grid_sz[0], tiling_grid_sz[1])
+            caption_str = caption_str + ', {:d}x{:d} grid'.format(
+                tiling_grid_sz[0], tiling_grid_sz[1])
 
         tiling_step_sz = get_tiling_step(config)
         if not isnone(tiling_step_sz):
-            caption_str = caption_str + ', %.1f mm step' %tiling_step_sz
+            caption_str += ', {:.1f} mm step'.format(tiling_step_sz)
 
         pixel_sz = get_scan_px_sz(config, apply_sz_calib=False)
         if not isnone(pixel_sz):
-            caption_str = caption_str + ', pixel size: %.2f um' %pixel_sz
+            caption_str += ', pixel size: {:.2f} um'.format(pixel_sz)
 
         scan_area_x = img_sz[1] * pixel_sz
         scan_area_y = img_sz[0] * pixel_sz
         if not isnone(scan_area_x) and not isnone(scan_area_y):
-            caption_str = caption_str \
-                + ', scan area: {:.2f}x{:.2f} mm'.format(
-                    scan_area_x/1E3, scan_area_y/1E3)
+            caption_str += ', scan area: {:.2f}x{:.2f} mm'.format(
+                scan_area_x/1E3, scan_area_y/1E3)
 
         image_num_mpx = img_sz[0]*img_sz[1]
         if not isnone(image_num_mpx):
-            caption_str = caption_str + ', %.1f Mpx' %(image_num_mpx/1E6)
+            caption_str += ', {:.1f} Mpx'.format(image_num_mpx/1E6)
 
-        caption_str = caption_str + '\n'
+        caption_str += '\n'
 
         date = get_scan_date(config)
         if not isnone(date):
-            caption_str = caption_str + 'Data: ' + date
+            caption_str += 'Data: ' + date
 
         operator = get_operator_name(config)
         if not isnone(operator):
-            caption_str = caption_str + ', Scanned by: ' + operator
+            caption_str += ', Scanned by: ' + operator
 
         sample_id = get_sampe_id(config)
         if not isnone(sample_id):
-            caption_str = caption_str + ', Sample: ' + sample_id
+            caption_str += ', Sample: ' + sample_id
 
         sample_area_label = get_sample_area_label(config)
         if not isnone(sample_area_label):
-            caption_str = caption_str + ', Area ' + sample_area_label
+            caption_str += ', Area ' + sample_area_label
 
     return caption_str
 
 
 def make_mosaic_fig(data=None, mask=None, ij=None, pad=0.02, rng=None):
-    """Make a mosaic figure of images arranged according to row and column indices.
+    """Make a mosaic figure of images arranged by row and column indices.
 
     The row and column indices are given in ``ij``.
 
@@ -223,7 +231,6 @@ def make_mosaic_fig(data=None, mask=None, ij=None, pad=0.02, rng=None):
     for indt in enumerate(num_grid_rows*num_grid_cols):
         ax = plt.subplot(grid[ij[indt, 0], ij[indt, 1]])
         ax.set_aspect('equal')
-        #plt.imshow(I)
         img = remap_img(data[:, :, mask[indt]], rng=rng)[0]
         img = np.fliplr(img)
         plt.imshow(img)
@@ -241,14 +248,15 @@ def gen_img_report(
 
     if isnone(chan_ind):
         chan_ind = get_def_chan_idx(config)
-        print("Channel index not specified assuming ch_ind=%d" %(chan_ind))
+        print("Channel index not specified assuming ch_ind={:d}".format(
+            chan_ind))
 
     validate_chan_idx(config, chan_ind)
     chan_type = get_chan_det_type(config, chan_ind)
 
     if isnone(config):
         print("Could not obtain config data, cannot generate image.")
-        return
+        return False
 
     if isinstance(file_name, type(str())):
         composite = False
@@ -258,7 +266,8 @@ def gen_img_report(
             ch=chan_ind, corr_fi=corr_fi, cmap=cmap, cmap_sat=cm_sat)
     else:
         composite = True
-        title_str = make_img_title(config, chan=chan_ind, print_exw=True, chas=chas)
+        title_str = make_img_title(config, chan=chan_ind, print_exw=True,
+                                   chas=chas)
         [img, img_raw, img_scaled, cmap, rng, gamma] = make_composite_img(
             file_name, ofs=[None, None, None], chas=chas)
 
@@ -273,10 +282,10 @@ def gen_img_report(
     show_img(img, title=title_str, remap=False)
 
     if write_image:
-        mpimg.imsave(file_name[:file_name.rfind('.')] + 'img' + '.png', img)
+        mpimg.imsave(file_name[:file_name.rfind('.')] + fig_suffix + 'img' + '.png', img)
 
     if write_unprocessed_grayscale:
-        plt.imsave(file_name[:file_name.rfind('.')] + 'img_u' + '.png',
+        plt.imsave(file_name[:file_name.rfind('.')] + fig_suffix + 'img_u' + '.png',
                    img_raw, vmin=rng[0], vmax=rng[1], cmap="gray")
 
     if chan_type == DetectorType.Counter:
@@ -304,12 +313,14 @@ def gen_img_report(
     plt.text(0, nr*1.02, caption_str, verticalalignment='top')
 
     if plot_raw_hist:
+        print("Plotting raw histogram...")
         plt.subplot(grid[0, 2])
         plt.hist(img_raw.flatten(), bins=256, log=True)
         ax = plt.gca()
         ax.set_title("Raw histogram")
 
     if plot_mapped_hist:
+        print("Plotting mapped histogram...")
         plt.subplot(grid[0, 3])
         plt.hist(img_scaled.flatten(), bins=256, log=True)
         ax = plt.gca()
@@ -327,33 +338,46 @@ def gen_img_report(
             else:
                 sat1 = (sat_mask > 1).sum()/len(sat_mask.flatten())
                 if sat1 > 0.001:
-                    sat1_str = "%.3f" %((sat_mask > 1).sum()/len(sat_mask.flatten()))
+                    sat1_str = "{:.3f}".format(
+                        (sat_mask > 1).sum()/len(sat_mask.flatten()))
                 else:
                     sat1_str = str((sat_mask > 1).sum()) + " px"
 
                 plt.text(0, sat_mask.shape[0]*1.05,
-                         "Saturation: >1 "+ sat1_str + "; "
-                         ">2 "+ "%.3f" %((sat_mask > 2).sum()/len(sat_mask.flatten())) + "; "
-                         #">3 "+ "%.3f" %((sat_mask>3).sum()/len(sat_mask.flatten())) + "; "
-                         ">4 "+ "%.3f" %((sat_mask > 4).sum()/len(sat_mask.flatten())))
+                         "Saturation: >1 " + sat1_str
+                         + "; >2 " + "{:.3f}".format(
+                             (sat_mask > 2).sum()/len(sat_mask.flatten()))
+                         + "; >4 " + "{:.3f}".format(
+                             (sat_mask > 4).sum()/len(sat_mask.flatten())))
 
-    #else:
+    # TODO: Make image reporting work for time series
+    # else:
     #    if D_type == lk.DataType.TimeLapse:
     #        mos_type = lk.MosaicType.TimeSeries
     #    elif D_type == lk.DataType.ZStack:
     #        mos_type = lk.MosaicType.ZStack
     #    else:
     #        print("Unknown data type" + str(D_type))
-    #        #return None
-    #
-    #    lk.show_mosaic(data, file_name, mos_type=mos_type)
+    #        return None
+    # lk.show_mosaic(data, file_name, mos_type=mos_type)
 
     if do_export_figure:
+        print("Exporting report...")
         if composite:
             export_figure(file_name[0], suffix=fig_suffix + "comb")
         else:
             export_figure(file_name, suffix=fig_suffix)
 
+    return True
+
+def gen_img_reports(corr_fi=False, **args):
+    ret_val = True
+    for ind in [2,3]:
+        print("Processing channel {:d}...".format(ind))
+        ret_val = ret_val and \
+            gen_img_report(chan_ind=ind, corr_fi=corr_fi, fig_suffix="_ch{:d}".format(ind), **args)
+
+    return ret_val
 
 def gen_out_imgs(
         file_name=None, data=None, step_sz=None, rng=None, rng_override=None,
@@ -368,7 +392,7 @@ def gen_out_imgs(
             raise Exception("InvalidDataType")
 
         if dtype == DataType.Tiling:
-            # TODO: scan field size calibration is out of date. Fix it. # pylint: disable=W0511
+            # TODO: scan field size calibration is out of date. Fix it.
             img_sz = get_scan_field_size(config, apply_sz_calib=False)
             img_sz = [img_sz, img_sz]
 
@@ -378,8 +402,10 @@ def gen_out_imgs(
 
             [data, mask, ij] = get_tiling_data(file_name=file_name, data=data)
 
-            if isnone(rng):
-                rng = get_opt_map_rng(data=data, file_name=file_name, mask=mask, ij=ij)
+            # TODO: get range for tiled images
+            # if isnone(rng):
+            #     rng = get_opt_map_rng(data=data, file_name=file_name,
+            #                           mask=mask, ij=ij)
 
             print("Making raw tiled image...")
             show_raw_tiled_img(file_name=file_name, data=data, rng=rng)
@@ -411,8 +437,10 @@ def gen_out_imgs(
                     img_save.astype(np.uint8),
                     ImageName=rem_extension(file_name), suffix="bw",
                     img_type="png", cmap="gray")
-    except: # pylint: disable=W0702
-        handle_general_exception("Could not generate output images for file " + file_name)
+    except:
+        handle_general_exception(
+            "Could not generate output for file " + file_name)
+
 
 def gen_stab_report(
         data_dir, dtype=None, ylim_norm=None, show_png_ext=False,
@@ -479,16 +507,21 @@ def gen_stab_report(
             fig_file_name = "Ophir_vs_diode.png"
 
         # Read beam position traces
-        if dtype in ("THG_vs_nearXY", "THG_vs_farXY", "beam_pos", "beam_pos_ofs"):
+        if dtype in ("THG_vs_nearXY", "THG_vs_farXY", "beam_pos",
+                     "beam_pos_ofs"):
             t_ofs_lcbd = kwargs.get("t_ofs_lcbd")
 
             data = read_lc_beam_diag(get_lc_beam_diag_path(data_dir, 2))
-            near_x = Trace(T=data[:, 0], Y=data[:, 1], title='Near Deviation X')
-            near_y = Trace(T=data[:, 0], Y=data[:, 2], title='Near Deviation Y')
+            near_x = Trace(T=data[:, 0], Y=data[:, 1],
+                           title='Near Deviation X')
+            near_y = Trace(T=data[:, 0], Y=data[:, 2],
+                           title='Near Deviation Y')
 
             data = read_lc_beam_diag(get_lc_beam_diag_path(data_dir, 1))
-            far_x = Trace(T=data[:, 0], Y=data[:, 1], title='Far Deviation X')
-            far_y = Trace(T=data[:, 0], Y=data[:, 2], title='Far Deviation Y')
+            far_x = Trace(T=data[:, 0], Y=data[:, 1],
+                          title='Far Deviation X')
+            far_y = Trace(T=data[:, 0], Y=data[:, 2],
+                          title='Far Deviation Y')
 
         # Make beam position stability plots
         if dtype == "THG_vs_nearXY":
@@ -555,7 +588,7 @@ def gen_stab_report(
         if copy_fig_to_storage:
             copy_stab_fig_to_storage(data_dir, fig_file_path)
 
-    except: # pylint: disable=W0702
+    except:
         handle_general_exception("Could not analyze trace")
 
 
@@ -563,8 +596,10 @@ def copy_stab_fig_to_storage(data_dir, fig_file_name):
     """Copy the stability report figure to the repostitory."""
     s = data_dir
     date_str = re.findall(r"(\d{4}-\d{2}-\d{2})", s)[0]
-    dst = r"Z:\Projects\LCM\Data\Signal Stability\Stability Traces\\" + date_str + ".png"
+    dst = r"Z:\Projects\LCM\Data\Signal Stability\Stability Traces\\" \
+        + date_str + ".png"
     copyfile(fig_file_name, dst)
+
 
 def gen_report(file_name=None, img_file_names=None, chan_id=2, dry_run=False):
     """Generate a report."""
@@ -572,18 +607,21 @@ def gen_report(file_name=None, img_file_names=None, chan_id=2, dry_run=False):
         raise ValueError("File name not given")
 
     if isnone(img_file_names):
-        img_file_names = list_files_with_filter(rem_extension(file_name) + 'Tiled_*' + '*.png')
+        img_file_names = list_files_with_filter(
+            rem_extension(file_name) + 'Tiled_*' + '*.png')
 
     for img_file_name in img_file_names:
         img_sz = get_img_sz(file_name=img_file_name)
 
         if img_file_name.find("viridis") != -1:
             img_cmap = "viridis"
-        elif(img_file_name.find("WK") != -1 or img_file_name.find("Greys") != -1):
+        elif(img_file_name.find("WK") != -1 or
+             img_file_name.find("Greys") != -1):
             img_cmap = "WK"
         else:
             img_cmap = img_file_name[img_file_name.rfind('_')+1:-4]
-            print("Unknown colourmap for file ''%s'', using ''%s''." %(img_file_name, img_cmap))
+            print("Unknown colourmap for file ''{:s}''".format(img_file_name)
+                  + ", using ''{:s}''.".format(img_cmap))
 
         config = read_cfg(file_name)
 
@@ -615,4 +653,5 @@ def gen_report(file_name=None, img_file_names=None, chan_id=2, dry_run=False):
             sample_map_area_href=sample_map_area_href,
             dry_run=dry_run)
 
-        ConvertSVGToPDF(change_extension(img_file_name, "svg"), dry_run=dry_run)
+        ConvertSVGToPDF(change_extension(img_file_name, "svg"),
+                        dry_run=dry_run)

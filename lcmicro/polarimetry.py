@@ -1,8 +1,5 @@
 
-"""
-=== lcmicro ===
-
-A Python library for nonlinear microscopy and polarimetry.
+""" lcmicro - a Python library for nonlinear microscopy and polarimetry.
 
 This module contains polarimetry routines
 
@@ -25,9 +22,11 @@ def col_vec(arr):
     vec.shape = (len(vec), 1)
     return vec
 
+
 def get_eps():
     """Get the floating point math precision."""
     return np.finfo('float64').eps
+
 
 def tensor_eq(tns1, tns2):
     """Check if two tensors are equal within the floating point precision.
@@ -35,6 +34,7 @@ def tensor_eq(tns1, tns2):
     Works for vectors and matrices too.
     """
     return (np.abs(tns1 - tns2) <= get_eps()).all()
+
 
 def rot_mueller_mat(mat, theta=0):
     """Get a rotated Mueller matrix."""
@@ -50,6 +50,7 @@ def rot_mueller_mat(mat, theta=0):
     mat_rot[3, 3] = 1
 
     return mat_rot @ mat @ mat_rot.transpose()
+
 
 def get_mueller_mat(element, theta=0, **kwargs):
     """Get the Mueller matrix of ``element``.
@@ -75,9 +76,9 @@ def get_mueller_mat(element, theta=0, **kwargs):
         mat[3, 2] = -1
 
     elif element in ("rtd", "retarder"):
-        d = kwargs.get('d', 0) # pylint: disable=C0103
-        c = cos(d) # pylint: disable=C0103
-        s = sin(d) # pylint: disable=C0103
+        d = kwargs.get('d', 0)  # pylint: disable=C0103
+        c = cos(d)  # pylint: disable=C0103
+        s = sin(d)  # pylint: disable=C0103
 
         mat[0, 0] = 1
         mat[1, 1] = 1
@@ -102,7 +103,6 @@ def get_mueller_mat(element, theta=0, **kwargs):
     else:
         print("Element ''{:s}'' not defined".format(element))
 
-    #mat = matrix(mat)
     mat = rot_mueller_mat(mat, theta)
 
     return mat
@@ -145,8 +145,6 @@ def get_stokes_vec(state):
     svec[3] = sin(2*omega)
 
     svec.shape = (4, 1)
-    #svec = matrix(svec)
-
     return svec
 
 

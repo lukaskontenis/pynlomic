@@ -1,9 +1,8 @@
-"""
-=== lcmicro ===
 
-A Python library for nonlinear microscopy and polarimetry.
+"""lcmicro - a Python library for nonlinear microscopy and polarimetry.
 
-This module contains routine to parse microscopy data metainformation and configuration files.
+This module contains routines to parse microscopy data metainformation and
+configuration files.
 
 Some ideas are taken from Lukas' collection of MATLAB scripts developed while
 being a part of the Barzda group at the University of Toronto in 2011-2017.
@@ -29,25 +28,31 @@ def get_sample_name(config):
         return get_sample_name(config[0])
     return get_head_val(config, "Sample", "Name")
 
+
 def get_sampe_id(config):
     """Get the ID of the sample."""
     return get_head_val(config, "Sample", "ID")
+
 
 def get_sample_area_label(config):
     """Get the area label of the sample."""
     return get_head_val(config, "Sample", "Area")
 
+
 def get_scan_date(config):
     """Get the scan date."""
     return get_head_val(config, "Scan Info", "Scan date")
+
 
 def get_scan_descr(config):
     """Get the scan description string."""
     return get_head_val(config, "Scan Info", "Description")
 
+
 def get_operator_name(config):
     """Get the operator name."""
     return get_head_val(config, "Scan Info", "Operator")
+
 
 def get_num_chan(config):
     """Get the number of channels in dataset."""
@@ -55,6 +60,7 @@ def get_num_chan(config):
         if isnone(get_cfg_section(config, "Channel " + str(chan_id))):
             return chan_id
     raise Exception("InvalidChannelNumber")
+
 
 def get_chan_name(config, chan):
     """Get the name of channel a channel."""
@@ -66,7 +72,8 @@ def get_chan_name(config, chan):
         return names
     return get_head_val(config, "Channel " + str(chan), "Name")
 
-def get_chan_hw_name(config, chan_ind): # pylint: disable=W0613
+
+def get_chan_hw_name(config, chan_ind):  # pylint: disable=W0613
     """Get the hardware name of the channel.
 
     Get the hardware source name string of the channel index. This information
@@ -80,6 +87,7 @@ def get_chan_hw_name(config, chan_ind): # pylint: disable=W0613
     }
     return hw_chan_map.get(chan_ind, "invalid")
 
+
 def get_chan_det_type(config, chan_ind):
     """Get the detector type of a channel.
 
@@ -92,19 +100,22 @@ def get_chan_det_type(config, chan_ind):
         chan_type = DetectorType.Counter
     return chan_type
 
+
 def get_chan_units(chan_type):
     """Get the units of a channel type."""
     if chan_type == DetectorType.Voltage:
-        chan_units = "V" # Volts
+        chan_units = "V"  # Volts
     elif chan_type == DetectorType.Counter:
-        chan_units = "c." # Counts
+        chan_units = "c."  # Counts
     return chan_units
 
-def get_def_chan_idx(config): # pylint: disable=W0613
+
+def get_def_chan_idx(config):  # pylint: disable=W0613
     """Get the default channel index."""
     return 2
 
-def validate_chan_idx(config, chan_ind): # pylint: disable=W0613
+
+def validate_chan_idx(config, chan_ind):  # pylint: disable=W0613
     """Validate the channel index.
 
     TODO: This should read the config file to check which channels are defined.
@@ -114,6 +125,7 @@ def validate_chan_idx(config, chan_ind): # pylint: disable=W0613
         return False
     else:
         return True
+
 
 def get_nl_ord(config, chan):
     """Get the nonlinear order of a channel."""
@@ -126,9 +138,11 @@ def get_nl_ord(config, chan):
         # Alexa MPEF
         return 2
     else:
-        print("Unknown nonlinear order of channel '" + str(chan) + "', assuming 2")
+        print("Unknown nonlinear order of channel '"
+              + str(chan) + "', assuming 2")
         return 2
     return -1
+
 
 def get_chan_filter_name(config, chan):
     """Get the spectral filter name of a channel."""
@@ -138,9 +152,11 @@ def get_chan_filter_name(config, chan):
     else:
         return name.strip(r'"')
 
+
 def get_laser_name(config):
     """Get the laser name string."""
     return get_head_val(config, "Setup", "Laser")
+
 
 def get_ex_wavl(config):
     """Get the excitation wavelength in um."""
@@ -158,6 +174,7 @@ def get_ex_wavl(config):
     else:
         return None
 
+
 def get_ex_power(config):
     """Get the excitation power in W."""
     if isarray(config):
@@ -174,12 +191,15 @@ def get_ex_power(config):
     else:
         return None
 
-def get_det_sat_thr(config): # pylint: disable=W0613
+
+def get_det_sat_thr(config):  # pylint: disable=W0613
     """Get the count saturation threshold of the detector.
 
-    TODO: This assumes H10682 photon counter. Should validate with the config file.
+    TODO: This assumes H10682 photon counter. Should validate with the config
+    file.
     """
     return 5E6
+
 
 def get_px_cnt_limits(config):
     """Get all count limits."""
@@ -193,6 +213,7 @@ def get_px_cnt_limits(config):
     limit.CountLinearity = int(np.round(pixel_t*sat_f))
     return limit
 
+
 def get_px_cnt_limit(config, ignore_linearity_limit=True):
     """Get the maximum expected number of counts per pixel."""
     limit = get_px_cnt_limits(config)
@@ -201,13 +222,15 @@ def get_px_cnt_limit(config, ignore_linearity_limit=True):
     else:
         return np.min([limit.RepRate, limit.SinglePulse, limit.CountLinearity])
 
-def get_px_bckgr_count(config): # pylint: disable=W0613
+
+def get_px_bckgr_count(config):  # pylint: disable=W0613
     """Get the expected counts per pixel due to background.
 
     Using photon counters at µs dwell times results in at most 1 count per
     pixel due to dark counts. This then assumes a background level of 2 c./px
     """
     return 2
+
 
 def get_stage_pos(config, axis=None, index=None):
     """Get the stage position on an axis.
@@ -227,6 +250,7 @@ def get_stage_pos(config, axis=None, index=None):
         except ValueError:
             print("Cannot parse stage position")
     return pos
+
 
 def get_stage_xyz_pos(config=None, file_name=None, index=None):
     """Get the XYZ sample stage position of a data store entry."""
@@ -250,6 +274,7 @@ def get_stage_xyz_pos(config=None, file_name=None, index=None):
 
     return [X, Y, Z]
 
+
 def get_ex_rep_rate(config):
     """Get the repetition rate of the excitation source."""
     laser = get_laser_name(config)
@@ -263,9 +288,9 @@ def get_ex_rep_rate(config):
     print("Cannot determine repetition rate for " + laser)
     return None
 
+
 def get_scan_field_size(config, apply_sz_calib=True):
     """Get the scan field size in µm."""
-
     fieldsz_um = get_head_val(config, "Scan Geometry", "Field size")
     if fieldsz_um is None:
         fieldsz_um = get_head_val(config, "Scan", "Field size")
@@ -279,6 +304,7 @@ def get_scan_field_size(config, apply_sz_calib=True):
         fieldsz_um = fieldsz_um*calib_corr
     return fieldsz_um
 
+
 def get_scan_frame_time(config):
     """Get the scan frame time in s."""
     frame_t_s = get_head_val(config, "Scan Geometry", "Frame time")
@@ -289,6 +315,7 @@ def get_scan_frame_time(config):
         return None
     return float(frame_t_s)
 
+
 def get_px_time(config):
     """Get pixel dwell time time in seconds."""
     frame_t_s = get_scan_frame_time(config)
@@ -297,6 +324,7 @@ def get_px_time(config):
         print("Cannot determine pixel time")
         return None
     return frame_t_s/res/res
+
 
 def get_total_scan_time(config):
     """Get the total scan time in seconds.
@@ -307,11 +335,13 @@ def get_total_scan_time(config):
     frame_t = get_scan_frame_time(config)
     return num_f * frame_t
 
+
 def get_total_meas_time(config):
     """Get the total measurement time in seconds."""
     num_idx = get_data_store_idx_len(config)
     return timestamp_str_to_seconds(get_idx_ts(config, num_idx-1)) \
-         - timestamp_str_to_seconds(get_idx_ts(config, 0))
+        - timestamp_str_to_seconds(get_idx_ts(config, 0))
+
 
 def get_scan_resolution(config):
     """Get the scan resolution in px."""
@@ -333,11 +363,12 @@ def get_scan_resolution(config):
 
     return (nr + nc)/2
 
+
 def get_scan_field_calib_corr(config):
     """Get calibration correction for a physical scan field size.
 
-    This function should be used to correct previous scan data if the scan field
-    calibration is later determined to be wrong.
+    This function should be used to correct previous scan data if the scan
+    field calibration is later determined to be wrong.
     """
     scan_field_calib_date = None
     has_calib = False
@@ -346,13 +377,15 @@ def get_scan_field_calib_corr(config):
         calibcfg = config['Calibration']
         scan_field_calib_date = calibcfg.get('Scan field calib date', None)
 
-    # If no scan field calibration is defined or it is older than 2018.04.04, the
-    # scan field size calibration is wrong and needs to be corrected
-    if not has_calib or (has_calib and scan_field_calib_date < datetime(2018, 4, 4)):
+    # If no scan field calibration is defined or it is older than 2018.04.04,
+    # the scan field size calibration is wrong and needs to be corrected
+    if not has_calib or (has_calib and
+                         scan_field_calib_date < datetime(2018, 4, 4)):
         return 0.785
 
     # Otherwise all is fine
     return 1.0
+
 
 def get_scan_px_sz(config, **kwargs):
     """Get the size of the scan pixel in um."""
@@ -376,6 +409,7 @@ def get_scan_px_sz(config, **kwargs):
         umpx = field_sz_um/img_res_col
         return umpx
 
+
 def get_data_store_idx_len(config):
     """Get the length of the data store index."""
     num_sec = 0
@@ -385,10 +419,12 @@ def get_data_store_idx_len(config):
             return num_sec
         num_sec = num_sec + 1
 
+
 def get_data_store_entry(config, ind):
     """Get the a data store entry."""
     sec_name = 'Index ' + str(ind)
     return config[sec_name]
+
 
 def get_num_frames(config):
     """Get the number of frames."""
@@ -400,6 +436,7 @@ def get_num_frames(config):
         print("WARNING: Number of frames in not a round number")
 
     return int(num_f)
+
 
 def get_idx_mask(config, chan_sel):
     """Get the data index mask."""
@@ -415,7 +452,8 @@ def get_idx_mask(config, chan_sel):
         sec = get_data_store_entry(config, indd)
         chan_str = sec.get('Channel', None)
 
-        if(not isnone(chan_str) and (chan_str.find("AI") != -1 or chan_str.find("CNT") != -1)):
+        if(not isnone(chan_str) and (chan_str.find("AI") != -1
+                                     or chan_str.find("CNT") != -1)):
             # Channel names are strings
             chan = chan_str.strip('"')
         else:
@@ -437,6 +475,7 @@ def get_idx_ts(config, indd):
     """Get the timestamp string of a data store entry."""
     sec = get_data_store_entry(config, indd)
     return sec.get('Timestamp', None)
+
 
 def get_idx_ts_ms(config, mask):
     """Get the timestamps of the index entries in ms.
@@ -469,10 +508,12 @@ def get_idx_ts_ms(config, mask):
 
     return ts
 
+
 def get_data_item_z_pos(config, idx):
     """Get the Z position in mm of a data item at the given index."""
     sec = get_data_store_entry(config, idx)
     return float(sec.get('Z', None))
+
 
 def get_idx_z_pos(config, mask=None):
     """Get the Z positions of the masked data store entries in mm."""
@@ -486,6 +527,7 @@ def get_idx_z_pos(config, mask=None):
 
     return Z
 
+
 def get_frame_z_pos_arr(config):
     """Get frame Z positions in mm."""
     num_f = get_num_frames(config)
@@ -498,20 +540,24 @@ def get_frame_z_pos_arr(config):
 
     return z_arr
 
+
 def get_z_pos_rng(config):
     """Get the range of frame Z positions in mm."""
     z_arr = get_frame_z_pos_arr(config)
     return [np.min(z_arr), np.max(z_arr)]
+
 
 def get_z_pos_spa(config):
     """Get the span of Z positions in mm."""
     z_rng = get_z_pos_rng(config)
     return z_rng[1] - z_rng[0]
 
+
 def get_z_pos_avg_step(config):
     """Get the average Z step between frames in mm."""
     z_arr = get_frame_z_pos_arr(config)
     return np.mean(np.diff(z_arr))
+
 
 def get_cfg_range(config, chan_id=2):
     """Get the display mapping range for a given channel from the config."""
@@ -523,12 +569,14 @@ def get_cfg_range(config, chan_id=2):
     rng = rng.split(',')
     return [int(rng[0]), int(rng[1])]
 
+
 def get_cfg_gamma(config, ch=2):
     """Get the config gamma value for a given channel."""
     gamma = get_head_val(config, "Channel " + str(ch), "Gamma")
     if(gamma == '' or gamma is None):
         return None
     return float(gamma.strip('"'))
+
 
 def get_data_type(config=None, file_name=None):
     """Determine data type from the config file."""
@@ -550,7 +598,8 @@ def get_data_type(config=None, file_name=None):
         num = get_data_store_idx_len(config)
 
         # TODO: This needs to be fixed for old data # pylint: disable=W0511
-        # If there are only three or four channels the data must be a single scan
+        # If there are only three or four channels the data must be a single
+        # scan
         if num in (3, 4):
             return DataType.SingleImage
 
@@ -566,6 +615,7 @@ def get_data_type(config=None, file_name=None):
 
     # If somehow none of the data type guesses fit mark the type as invalid
     return DataType.Invalid
+
 
 def print_data_info(config=None):
     """Print information about the dataset."""
@@ -603,7 +653,8 @@ def print_data_info(config=None):
     print("Total scan time: " + make_human_time_str(scan_t))
     print("Measurement time: " + make_human_time_str(meas_t))
     print("Scan overhead: " + make_human_time_str(overhead_t))
-    print("Measurement scan time efficiency: {:.3g}".format(1-overhead_t/meas_t))
+    print("Measurement scan time " +
+          "efficiency: {:.3g}".format(1-overhead_t/meas_t))
     print("\n")
 
     if dtype == DataType.ZStack:
@@ -615,6 +666,7 @@ def print_data_info(config=None):
         print("\tTo: {:.3g} um".format(z_rng[1]*1E3))
         print("\tSpan: {:3g} um".format(z_span*1E3))
         print("\tAvg step: {:.3g} um".format(z_step*1E3))
+
 
 def get_tiling_cfg(config):
     """Get the tiling configuration.
@@ -635,9 +687,9 @@ def get_tiling_cfg(config):
 
     return [from_x, to_x, from_y, to_y, step]
 
+
 def get_tiling_step(config):
     """Get the tiling step size."""
-
     sec_str = "Tiling Config"
     sec = get_cfg_section(config, sec_str)
 

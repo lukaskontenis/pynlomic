@@ -1,7 +1,4 @@
-"""
-=== lcmicro ===
-
-A Python library for nonlinear microscopy and polarimetry.
+"""lcmicro - a Python library for nonlinear microscopy and polarimetry.
 
 This module contains routines to process microscopy data and images.
 
@@ -27,18 +24,22 @@ from lcmicro.cfgparse import get_idx_mask, get_scan_field_size, \
     get_def_chan_idx, get_px_cnt_limit, get_px_bckgr_count, get_idx_ts_ms, \
     get_idx_z_pos, get_chan_name, get_chan_filter_name
 
+
 def get_chan_frames(data=None, config=None, chan=2):
     """Get frames from the specified channel."""
     return data[:, :, get_idx_mask(config, chan)]
+
 
 def get_chan_sum(**kwargs):
     """Sum the counts in the frames of the given channels."""
     return get_chan_frames(**kwargs).sum(2)
 
+
 def get_img(**kwargs):
     """Just get an image."""
     [img, _, _, _] = proc_img(**kwargs)
     return img
+
 
 def export_chans(config=None, data=None, ch_id=None, rng=None):
     """Export channels."""
@@ -69,6 +70,7 @@ def export_chans(config=None, data=None, ch_id=None, rng=None):
 
         plt.imsave(img_file, data, vmin=rng[0], vmax=rng[1], cmap="gray")
 
+
 def get_def_chan_cmap(config, ch=2):
     """Get default colormap based on channel name."""
     ch_name = get_chan_name(config, chan=ch)
@@ -80,7 +82,6 @@ def get_def_chan_cmap(config, ch=2):
         return "inferno"
     else:
         return get_def_cmap(get_chan_filter_name(config, chan=ch))
-
 
 
 def get_def_cmap(chan_str=None):
@@ -105,8 +106,11 @@ def estimate_spot_sz(wavl=1.028, NA=0.75, n=1):
 
     wh_z = 0.61*wavl/(n-np.sqrt(n**2 - NA**2))
 
-    print("NA = %.2f, lamda = %.3f um, n = %.3f" %(NA, wavl, n))
-    print("XY = %.2f um FWHM, Z = %.2f um FWHM" %(wh_xy, wh_z))
+    print("NA = {:.2f}, lamda = {:.3f} um, n = {:.3f}".format(
+        NA, wavl, n))
+    print("XY = {:.2f} um FWHM, Z = {:.2f} um FWHM".format(
+        wh_xy, wh_z))
+
 
 def print_cnt_lin_info(cnt, dwell_t=None, frep=None):
     """Print counting linearity and correction info."""
@@ -118,22 +122,23 @@ def print_cnt_lin_info(cnt, dwell_t=None, frep=None):
         frep = 75e6
 
     rate = cnt/dwell_t
-    print("Count rate: %.3f Mcps" %(rate/1e6))
+    print("Count rate: {:.3f} Mcps".format(rate/1e6))
 
     prob = rate/frep
-    print("Count probability: %.3f" %prob)
+    print("Count probability: {:.3f}".format(prob))
 
     frep = 0.5*prob**2
-    print("Correction factor: %3g" %frep)
+    print("Correction factor: {:3g}".format(frep))
 
     fsev = frep/prob
-    print("Correction severity: %3g" %fsev)
+    print("Correction severity: {:3g}".format(fsev))
 
     cnt_corr = cnt*(1+fsev)
-    print("Corrected counts: %.3f Mcps" %(cnt_corr/1e6))
+    print("Corrected counts: {:.3f} Mcps".format(cnt_corr/1e6))
 
-    print("Count delta: %.3f Mcps" %((cnt_corr - cnt)/1e6))
-    print("Correction severity: %.3f" %((cnt_corr - cnt)/cnt))
+    print("Count delta: {:.3f} Mcps".format((cnt_corr - cnt)/1e6))
+    print("Correction severity: {:.3f}".format((cnt_corr - cnt)/cnt))
+
 
 def get_scan_artefact_sz(file_name=None, config=None):
     """Get the size of the flyback scan artefact.
@@ -163,9 +168,9 @@ def get_scan_artefact_sz(file_name=None, config=None):
         return None
 
     # Observed artefact sizes for given scan field sizes and frame times
-    field_sz = [780, 393, 157, 78, 39] # in um
-    frame_t = [10, 2.5, 0.8, 1, 1] # in s
-    crop_sz_arr = [41.5, 27.5, 16.5, 3.14, 2.4] # in um
+    field_sz = [780, 393, 157, 78, 39]  # in um
+    frame_t = [10, 2.5, 0.8, 1, 1]  # in s
+    crop_sz_arr = [41.5, 27.5, 16.5, 3.14, 2.4]  # in um
 
     # Scan field size seems to be the largest factor. Find the closest
     # empirical scan field size for the current one
@@ -193,15 +198,16 @@ def get_scan_artefact_sz(file_name=None, config=None):
 
     return crop_sz_px
 
+
 def crop_scan_artefacts(img, config):
-    """Crop away the sides of the image corrupted by galvo-scanning artefacts."""
+    """Crop away galvo-scanning image artefacts."""
     crop_sz_px = get_scan_artefact_sz(config=config)
     img = crop_rem_rrcc(img, 0, 0, crop_sz_px, 0)
     return img
 
+
 def get_sat_mask(img, config):
     """Get a mask showing saturated pixels in an image."""
-
     px_t = get_px_time(config)
     frep = get_ex_rep_rate(config)
 
@@ -211,7 +217,6 @@ def get_sat_mask(img, config):
 
     sat_level = frep/10 * px_t
     mask = img / sat_level
-    #mask[mask < 1] = 0
     return mask
 
 
@@ -257,7 +262,9 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False):
 
     return [img, rng, gamma, data]
 
-def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True, rng=None):
+
+def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True,
+                    rng=None):
     """Arrange images into a mosaic with given coordinates and padding."""
     if isnone(rng):
         rng = [0, 20]
@@ -287,11 +294,12 @@ def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True, rng=Non
         else:
             img = data[:, :, indd]
 
-        mos[row_ofs : nr + row_ofs, col_ofs : nc + col_ofs] = np.fliplr(img)
+        mos[row_ofs: nr + row_ofs, col_ofs: nc + col_ofs] = np.fliplr(img)
 
     return mos
 
-def get_opt_map_rng(img=None, data=None, file_name=None, mask=None, ij=None):
+
+def get_opt_map_rng(img=None, file_name=None):
     """Get optimal mapping range for an image."""
     if isnone(file_name):
         print("Dataset file name has to be provided")
@@ -314,17 +322,19 @@ def get_opt_map_rng(img=None, data=None, file_name=None, mask=None, ij=None):
         print("Range estimation for tiled images doesn't yet work")
         return None
 
-        #print("Crating dummy mosaic...")
-        # TODO: This does not require ij indices. Remove requirement. # pylint: disable=W0511
-        #if isnone(data) or isnone(mask) or isnone(ij):
-            #[data, mask, ij] = get_tiling_data(data=data, file_name=file_name)
-        #img = make_mosaic_img(data, mask, ij, remap=False)
+        # TODO: This should be done by make_mosaic_img
+        # print("Crating dummy mosaic...")
+        # if isnone(data) or isnone(mask) or isnone(ij):
+        #     [data, mask, ij] = get_tiling_data(
+        #         data=data, file_name=file_name)
+        # img = make_mosaic_img(data, mask, ij, remap=False)
 
     print("Determining optimal mapping range...")
     rng = get_frac_sat_rng(img)
 
-    print("Mapping range: [%d , %d[" %(rng[0], rng[1]))
+    print("Mapping range: [{:d} , {:d}]".format(rng[0], rng[1]))
     return rng
+
 
 def make_image(img=None, data=None, file_name=None, rng=None, gamma=None,
                ch=2, corr_fi=True, cmap=None, cmap_sat=False):
@@ -351,7 +361,8 @@ def make_image(img=None, data=None, file_name=None, rng=None, gamma=None,
         if isnone(cmap):
             cmap = get_def_chan_cmap(config)
 
-        img = bake_cmap(img/255, cmap=cmap, remap=False, cm_over_val='r', cm_under_val='b')
+        img = bake_cmap(img/255, cmap=cmap, remap=False, cm_over_val='r',
+                        cm_under_val='b')
     else:
         if data_type == DataType.TimeLapse:
             mos_type = MosaicType.TimeSeries
@@ -364,12 +375,14 @@ def make_image(img=None, data=None, file_name=None, rng=None, gamma=None,
 
     return [img, img_raw, img_scaled, cmap, rng, gamma]
 
+
 def show_mosaic_img(**kwargs):
     """Make and show a channel mosaic image."""
     mosaic = make_mosaic_img(**kwargs)
     plt.imshow(mosaic)
     plt.axis('off')
     return mosaic
+
 
 def make_mosaic(data, file_name, aspect=16/9, index_mask=None, det_ch=2):
     """Make a mosaic of images in a 3D array."""
@@ -385,7 +398,8 @@ def make_mosaic(data, file_name, aspect=16/9, index_mask=None, det_ch=2):
     n_mc = np.int32(np.ceil(np.sqrt(aspect*nd)))
     n_mr = np.int32(np.ceil(nd/n_mc))
 
-    mosaic = np.ndarray([nr*n_mr + (n_mr-1)*pad, nc*n_mc + (n_mc-1)*pad, 4], dtype='uint8')
+    mosaic = np.ndarray([nr*n_mr + (n_mr-1)*pad, nc*n_mc + (n_mc-1)*pad, 4],
+                        dtype='uint8')
     mosaic.fill(255)
 
     image_coords = np.ndarray([nd, 2])
@@ -400,7 +414,7 @@ def make_mosaic(data, file_name, aspect=16/9, index_mask=None, det_ch=2):
         to_r = from_r + nr
         from_c = ind_mc*(nc + pad)
         to_c = from_c + nc
-        mosaic[from_r : to_r, from_c : to_c, :] = img*255
+        mosaic[from_r: to_r, from_c: to_c, :] = img*255
 
         image_coords[ind_mos, :] = [from_r, from_c]
 
@@ -411,7 +425,9 @@ def make_mosaic(data, file_name, aspect=16/9, index_mask=None, det_ch=2):
 
     return [mosaic, image_coords]
 
-def show_mosaic(data, file_name, mos_type=None, aspect=16/9, index_mask=None, det_ch=2):
+
+def show_mosaic(data, file_name, mos_type=None, aspect=16/9, index_mask=None,
+                det_ch=2):
     """Show a mosaic of images in a 3D array."""
     config = read_cfg(file_name)
     if index_mask is None:
@@ -438,7 +454,7 @@ def show_mosaic(data, file_name, mos_type=None, aspect=16/9, index_mask=None, de
     else:
         print('Unknown mosaic type ' + str(mos_type))
 
-    for ind in range(image_coords.shape[0]): # pylint: disable=E1136  # pylint/issues/3139
+    for ind in range(image_coords.shape[0]):  # pylint: disable=E1136
         cap_str = str(lbl[ind])
         if ind == 0:
             cap_str = label_str_pre + cap_str + label_str_suf
@@ -446,7 +462,9 @@ def show_mosaic(data, file_name, mos_type=None, aspect=16/9, index_mask=None, de
             image_coords[ind, 1] + nc/2, image_coords[ind, 0] - 7, cap_str,
             horizontalalignment='center')
 
-def make_composite_img(file_names, method="CombineToRGB", ofs=None, chas=None, corr_fi=True):
+
+def make_composite_img(file_names, method="CombineToRGB", ofs=None, chas=None,
+                       corr_fi=True):
     """Make a composite RGB image."""
     if method == "CombineToRGB":
         nch = len(file_names)
@@ -456,7 +474,7 @@ def make_composite_img(file_names, method="CombineToRGB", ofs=None, chas=None, c
 
             if ind == 0:
                 [nr, nc] = data[2].shape
-                img = np.ndarray([nr, nc, 3]) # RGB output image
+                img = np.ndarray([nr, nc, 3])  # RGB output image
                 img_raw = np.ndarray([nr, nc, nch])
                 img_scaled = np.ndarray([nr, nc, nch])
                 cmap = []
@@ -485,27 +503,65 @@ def make_composite_img(file_names, method="CombineToRGB", ofs=None, chas=None, c
         return [img, img_raw, img_scaled, cmap, rng, gamma]
     elif method == "BlendRGB":
         print("RGB blending is not yet working")
-        #I0 = (D0[0])[:,:,0:3]
-        #a0 = D0[1].astype(float)
-        #I1 = (D1[0])[:,:,0:3]
-        #a1 = D1[1].astype(float)
 
-        #a0 = a0/a0.max()
-        #a1 = a1/a1.max()
+        # TODO: Make RGB blending work
+        # I0 = (D0[0])[:,:,0:3]
+        # a0 = D0[1].astype(float)
+        # I1 = (D1[0])[:,:,0:3]
+        # a1 = D1[1].astype(float)
 
-        #a0 = a0**0.5
+        # a0 = a0/a0.max()
+        # a1 = a1/a1.max()
 
-        #a0 = a0/(a0+a1)
-        #a1 = a1/(a0+a1)
+        # a0 = a0**0.5
 
-        #I = .alpha_blend(I0, I1, a1=a0, a2=a1)
+        # a0 = a0/(a0+a1)
+        # a1 = a1/(a0+a1)
 
-        #scipy.misc.imsave('I0.png', I0)
-        #scipy.misc.imsave('I1.png', I1)
-        #scipy.misc.imsave('I.png', I)
+        # I = .alpha_blend(I0, I1, a1=a0, a2=a1)
+
+        # scipy.misc.imsave('I0.png', I0)
+        # scipy.misc.imsave('I1.png', I1)
+        # scipy.misc.imsave('I.png', I)
 
         return img
     else:
         print("Unknown method" + method)
 
     return None
+
+
+def export_zstack_images(file_name, rng=None, chan_id=3):
+    """
+    Read Z-stack bin file and export images to files.
+    """
+    print("Reading file Z-stack file {:s}...".format(file_name))
+    D = read_bin_file(file_name)
+    print("Done")
+
+    config = read_cfg(file_name)
+    chan_id = 3
+
+    mask = get_idx_mask(config, chan_id)
+    print("Found {:d} images with channel id {:d}".format(len(mask), chan_id))
+
+
+    if isnone(rng):
+        print("Mapping range not specified, setting to [0, max_value/10]")
+        vmin = 0
+        vmax = 1
+        for ind in range(len(mask)):
+            max_val = np.max(D[:, :, mask[ind]])
+            if(max_val > vmax):
+                vmax = max_val
+
+        rng = [int(vmin), int(vmax/10)]
+
+    print("Using [{:d}, {:d}] mapping range".format(rng[0], rng[1]))
+    print("Saving images...")
+    for ind in range(len(mask)):
+        img_file = r".\img\img_{:d}.png".format(ind)
+        print("Saving file " + img_file)
+        plt.imsave(img_file, D[:,:,mask[ind]], vmin=rng[0], vmax=rng[1], cmap="gray")
+
+    print("All done")
