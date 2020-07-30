@@ -2,9 +2,6 @@
 
 This module contains routines for signal stability analysis.
 
-Some ideas are taken from Lukas' collection of MATLAB scripts developed while
-being a part of the Barzda group at the University of Toronto in 2011-2017.
-
 Copyright 2015-2020 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
