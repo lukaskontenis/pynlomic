@@ -1,1 +1,3 @@
-lcmicro/__pycache__/*
+build/
+lcmicro/__pycache__/
+lcmicro.egg-info/
