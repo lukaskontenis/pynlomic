@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-from lklib.util import isnone, isarray, handle_general_exception
+from lklib.util import isnone, isarray, handle_general_exception, get_color
 from lklib.fileread import list_files_with_filter, rem_extension, \
     change_extension
 from lklib.cfgparse import read_cfg
@@ -21,6 +21,7 @@ from lklib.image import remap_img, show_img, add_scale_bar, get_colourmap, \
 from lklib.plot import export_figure
 from lklib.trace import trace_set_param, get_pharos_log_trace
 from lklib.report import MakeSVGReport, ConvertSVGToPDF
+from lklib.fit import fit_gaussian_1d
 
 from lcmicro.common import DataType, DetectorType, CountImageStats, \
     VoltageImageStats
@@ -652,3 +653,60 @@ def gen_report(file_name=None, img_file_names=None, chan_id=2, dry_run=False):
 
         ConvertSVGToPDF(change_extension(img_file_name, "svg"),
                         dry_run=dry_run)
+
+def gen_thg_psf_fig(file_name=None, type='distal', suptitle_suffix=None):
+    """Generate THG PSF report figure."""
+    data = np.loadtxt(file_name)
+
+    # The first point in a PSF scan might show a spurious point if the stage
+    # did a flyback movement to the scan start position. Since the scan can be
+    # done in any direction, the spurious point might be at the beginning
+    # or the end, but it should be the first point in the array.
+    data = data[1:, :]
+
+    # Get z position in um and amplitude in Mcnt
+    zpos = data[:, 0]*1E3
+    ampl = data[:, 1]/1E6
+
+    xlabel = 'Position, µm'
+    ylabel='THG, Mcnt'
+
+    if type is 'through':
+        plt.figure(figsize=[5, 5])
+        plt.plot(zpos, ampl, c=get_color('db'))
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.grid('on')
+    else:
+        plt.figure(figsize=[10, 5])
+        grid = plt.GridSpec(5, 2, wspace=0.1, hspace=0.1)
+        main_lin_axes = plt.subplot(grid[0:4, 0])
+        res_axes = plt.subplot(grid[4, 0])
+        main_log_axes = plt.subplot(grid[0:4, 1])
+        
+        fit_gaussian_1d(
+            zpos, ampl, plot=True, y_scale='lin',
+            main_axes=main_lin_axes, res_axes=res_axes, center_z_axis_in_plot=True,
+            plot_residuals=True, plot_fwhm=True,
+            xlabel=xlabel, ylabel=ylabel, xlim=[-25, 25])
+        
+        fit_gaussian_1d(
+            zpos, ampl, plot=True, y_scale='log', y_axis_pos='right',
+            main_axes=main_log_axes, center_z_axis_in_plot=True,
+            plot_residuals=False, plot_fwhm=True,
+            xlabel=xlabel, ylabel=ylabel)
+    
+    if suptitle_suffix is None:
+        if type is 'proximal':
+            suptitle_suffix = 'proximal surface'
+        elif type is 'distal':
+            suptitle_suffix = 'distal surface'
+        elif type is 'through':
+            suptitle_suffix = 'through scan'
+
+    suptitle_str = 'THG PSF'
+    if suptitle_suffix is not None:
+        suptitle_str += ', ' + suptitle_suffix
+    plt.suptitle(suptitle_str)
+
+    export_figure(file_name, suffix='_THG_PSF', resize=False)
