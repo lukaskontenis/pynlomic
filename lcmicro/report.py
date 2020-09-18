@@ -12,9 +12,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
+from scipy.optimize import curve_fit
+import configparser as cfg
+
 from lklib.util import isnone, isarray, handle_general_exception, get_color
 from lklib.fileread import list_files_with_filter, rem_extension, \
-    change_extension
+    change_extension, list_files_with_extension
 from lklib.cfgparse import read_cfg
 from lklib.image import remap_img, show_img, add_scale_bar, get_colourmap, \
      get_img_sz, save_img
@@ -710,3 +713,102 @@ def gen_thg_psf_fig(file_name=None, type='distal', suptitle_suffix=None):
     plt.suptitle(suptitle_str)
 
     export_figure(file_name, suffix='_THG_PSF', resize=False)
+
+
+def pol_attn_func(x, A, T, x0, y0):
+    """Polarizer attenuation function."""
+    return A*np.cos((x-x0)/T) + y0
+
+
+def calib_laser_power(file_name=None, trim_pts=2):
+    """Get power attenuator calibration coefficients.
+
+    Determine the calibration coefficients to convert from attenuator stepper
+    motor position to transmitted power.
+
+    Args:
+        file_name (str): Name of calibration data file. Use the first text file
+        in the current directory if not specified.
+        timp_pts (int): Number of points to trim from the beginning and the end
+            of the dataset.
+    """
+    if file_name is None:
+        file_names = list_files_with_extension(ext='txt')
+        if len(file_names) == 1:
+            file_name = file_names[0]
+        else:
+            file_name = file_names[0]
+            print("Multiple text files found, using the first one")
+            
+    print("Loading {:s} calibration file...".format(file_name))
+    D = np.loadtxt(file_name)
+    print("Done")
+
+    M = D[trim_pts : -trim_pts, 0]
+    P = D[trim_pts : -trim_pts, 1]
+
+    plt.plot(M, P*1000, marker='.', c=get_color('db'))
+
+    A_g = 0.06
+    T_g = 3700
+    x0_g = 12000
+    y0_g = 0.06
+
+    P_g = pol_attn_func(M, A_g, T_g, x0_g, y0_g)
+    plt.plot(M, P_g*1000, c=get_color('dg'))
+
+    popt = curve_fit(pol_attn_func, M, P, p0 = [A_g, T_g, x0_g , y0_g])[0]
+
+    A_f = popt[0]
+    T_f = popt[1]
+    x0_f = popt[2]
+    y0_f = popt[3]
+
+    mpos_fit = np.linspace(np.min(M), np.max(M), 1000)
+    power_fit = pol_attn_func(mpos_fit, A_f, T_f, x0_f, y0_f)
+
+    plt.plot(mpos_fit, power_fit*1000, c=get_color('dr'))
+
+    print('Fit model parameters:')
+    print('A = {:.3f}, T = {:.0f}, x0 = {:.0f}, y0 = {:3f}'.format(A_f, T_f, x0_f, y0_f))
+
+    Ap = 2*A_f
+    R = np.pi * T_f
+    Mofs = x0_f - R
+    Pofs = y0_f - A_f
+
+    if Mofs < 0:
+        Mofs = Mofs + 2*R
+
+    min_power = Pofs
+    max_power = y0_f+A_f
+    power_rng = 10*np.log10((y0_f + A_f)/(y0_f - A_f))
+    period = R
+    zero_offset = Mofs
+
+    print('Attenuator model parameters:')
+    print('Ap = {:.3f}, R = {:.0f}, Mofs = {:.0f}, Pofs = {:.3}'.format(Ap, R, Mofs, Pofs))
+    print('Min power: {:.1f} mW, Max power: {:.0f} mW, Dynamic range: {:.0f} dB'.format(min_power*1000, max_power*1000, power_rng))
+    print('Motor period: {:.0f} steps, zero offset: {:.0f} steps'.format(period, zero_offset))
+
+    plt.legend(['Data', 'Guess', 'Fit'])
+    plt.xlabel('Motor position, steps')
+    plt.ylabel('Power, mW')
+    plt.title('Power calibration')
+    plt.grid('on')
+    export_figure('pwrcalib.png', resize=False)
+
+    config = cfg.RawConfigParser()
+    calib_sec_str = 'Attenuator Calib'
+    config.add_section(calib_sec_str)
+    config.set(calib_sec_str, 'Ap', Ap)
+    config.set(calib_sec_str, 'R', R)
+    config.set(calib_sec_str, 'Mofs', Mofs)
+    config.set(calib_sec_str, 'Pofs', Pofs)
+
+    f = open('pwrcalib.ini', 'w')
+    config.write( f )
+    f.close()
+
+    plt.show(block=True)
+
