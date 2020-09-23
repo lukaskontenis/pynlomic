@@ -657,7 +657,7 @@ def gen_report(file_name=None, img_file_names=None, chan_id=2, dry_run=False):
         ConvertSVGToPDF(change_extension(img_file_name, "svg"),
                         dry_run=dry_run)
 
-def gen_thg_psf_fig(file_name=None, type='distal', suptitle_suffix=None):
+def gen_thg_psf_fig(file_name=None, type='distal', wavl=None, suptitle_suffix=None, **kwargs):
     """Generate THG PSF report figure."""
     data = np.loadtxt(file_name)
 
@@ -672,7 +672,7 @@ def gen_thg_psf_fig(file_name=None, type='distal', suptitle_suffix=None):
     ampl = data[:, 1]/1E6
 
     xlabel = 'Position, µm'
-    ylabel='THG, Mcnt'
+    ylabel = 'THG, Mcnt'
 
     if type is 'through':
         plt.figure(figsize=[5, 5])
@@ -691,7 +691,7 @@ def gen_thg_psf_fig(file_name=None, type='distal', suptitle_suffix=None):
             zpos, ampl, plot=True, y_scale='lin',
             main_axes=main_lin_axes, res_axes=res_axes, center_z_axis_in_plot=True,
             plot_residuals=True, plot_fwhm=True,
-            xlabel=xlabel, ylabel=ylabel, xlim=[-25, 25])
+            xlabel=xlabel, ylabel=ylabel, xlim=[-25, 25], **kwargs)
         
         fit_gaussian_1d(
             zpos, ampl, plot=True, y_scale='log', y_axis_pos='right',
@@ -708,6 +708,11 @@ def gen_thg_psf_fig(file_name=None, type='distal', suptitle_suffix=None):
             suptitle_suffix = 'through scan'
 
     suptitle_str = 'THG PSF'
+    if wavl:
+        if wavl < 0.2 or wavl > 20:
+            print("Wavelength should be in microns")
+        suptitle_str += ', λ={:.2f} µm'.format(wavl)
+
     if suptitle_suffix is not None:
         suptitle_str += ', ' + suptitle_suffix
     plt.suptitle(suptitle_str)
