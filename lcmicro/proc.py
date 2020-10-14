@@ -8,7 +8,7 @@ Contact: dse.ssd@gmail.com
 import numpy as np
 import matplotlib.pyplot as plt
 
-from lklib.util import isnone
+from lklib.util import isnone, printmsg
 from lklib.fileread import read_bin_file
 from lklib.cfgparse import read_cfg
 from lklib.image import crop_rem_rrcc, corr_field_illum, get_frac_sat_rng, \
@@ -19,7 +19,7 @@ from lcmicro.cfgparse import get_idx_mask, get_scan_field_size, \
     get_scan_frame_time, get_scan_px_sz, get_px_time, get_ex_rep_rate, \
     get_cfg_range, get_cfg_gamma, get_data_type, get_nl_ord, \
     get_def_chan_idx, get_px_cnt_limit, get_px_bckgr_count, get_idx_ts_ms, \
-    get_idx_z_pos, get_chan_name, get_chan_filter_name
+    get_idx_z_pos, get_chan_name, get_chan_filter_name, get_microscope_name
 
 
 def get_chan_frames(data=None, config=None, chan=2):
@@ -137,7 +137,7 @@ def print_cnt_lin_info(cnt, dwell_t=None, frep=None):
     print("Correction severity: {:.3f}".format((cnt_corr - cnt)/cnt))
 
 
-def get_scan_artefact_sz(file_name=None, config=None):
+def get_scan_artefact_sz(file_name=None, config=None, **kwargs):
     """Get the size of the flyback scan artefact.
 
     Get the size of the scan artefact on the left side of the image due to the
@@ -153,6 +153,8 @@ def get_scan_artefact_sz(file_name=None, config=None):
     the artefact size is quite difficult to estimate in general so here an
     empirical approach is taken.
     """
+    verbosity = kwargs.get('verbosity')
+
     if isnone(config):
         config = read_cfg(file_name)
 
@@ -164,28 +166,76 @@ def get_scan_artefact_sz(file_name=None, config=None):
         print("Cannot determine scan artefact size")
         return None
 
-    # Observed artefact sizes for given scan field sizes and frame times
-    field_sz = [780, 393, 157, 78, 39]  # in um
-    frame_t = [10, 2.5, 0.8, 1, 1]  # in s
-    crop_sz_arr = [41.5, 27.5, 16.5, 3.14, 2.4]  # in um
+    scope_name = get_microscope_name(config)
 
-    # Scan field size seems to be the largest factor. Find the closest
-    # empirical scan field size for the current one
-    ind = field_sz.index(min(field_sz, key=lambda x: abs(x-field_sz_um)))
+    if scope_name == 'LCM1':
+        # Observed artefact sizes for given scan field sizes and frame times
+        field_sz = [780, 393, 157, 78, 39]
+        artefact_sz_arr = (
+            (# 780 µm
+            [10],  # Frame time in s
+            [41.5]),  # Artefact size in µm
+            (# 393 µm
+            [2.5],
+            [27.5]),
+            (# 157 µm
+            [0.8],
+            [16.5]),
+            (# 78 µm
+            [1],
+            [3.14]),
+            (# 39 µm
+            [1],
+            [2.4]))
+    elif scope_name == 'FF':
+        # Derived from LCM1 calibration data based on 2020.10.13 reference
+        # measurements. The data point at 450 µm field size, 10 s ir actual
+        # reference measurements, the rest are linearly adjusted from LCM1
+        # data.
+        # sz,   ft,     px,     asz
+        # 500,  22.5,   0.33,   39.9
+        # 500,  10,     ,       57.4
 
-    # Assume linear scaling with deviation from the empirical scan time for
+        # 450,  22.5,   0.3,    35.4
+        field_sz = [500, 450, 400]
+        artefact_sz_arr = [
+            (# 500 µm
+            [22.5, 10],
+            [39.9, 57.5]),
+            (# 450 µm
+            [22.5, 10],
+            [35.4, 47.3]),
+            (# 400 µm
+            [40],
+            [21])]
+    else:
+        print("Unknown microscope. Cannot retrieve scan artifact size.")
+        return None
+
+    # The scan flyback artefact depends on several factors, mostly on the scan
+    # field size, then on the frame scan time.
+
+    # Find the closest calibration scan field size
+    ind_sz = field_sz.index(min(field_sz, key=lambda x: abs(x-field_sz_um)))
+
+    # Find the closest calibration frame time
+    frame_t_arr = artefact_sz_arr[ind_sz][0]
+    ind_ft = frame_t_arr.index(min(frame_t_arr, key=lambda x: abs(x-frame_t_s)))
+
+    # Assume linear scaling with deviation from the calibration scan time to
     # the corresponding scan field size.
-    t_fac = frame_t[ind]/frame_t_s
+    t_fac = frame_t_arr[ind_ft]/frame_t_s
 
-    crop_sz = crop_sz_arr[ind]
+    crop_sz_arr = artefact_sz_arr[ind_sz][1]
+    crop_sz = crop_sz_arr[ind_ft]
 
     # umpx seems to play a role as well. For a field size of 780 and pixel size
     # of 0.78 um the artefact is 42 um, but when pixel size is 0.39 um the
     # artefact becomes 91 um for some reason.
-    if(ind == 0 and umpx < 0.31):
-        crop_sz = 91
-    else:
-        crop_sz = crop_sz_arr[ind]
+    # if(ind == 0 and umpx < 0.31):
+    #     crop_sz = 91
+    # else:
+    #     crop_sz = crop_sz_arr[ind]
 
     # Apply frame time scaling
     crop_sz = crop_sz*t_fac
@@ -193,12 +243,15 @@ def get_scan_artefact_sz(file_name=None, config=None):
     # Convert crop size in um to px
     crop_sz_px = int(crop_sz/umpx)
 
+    if verbosity == 'info':
+        print("Scan artefact size is {:.1f} µm, {:d} px".format(crop_sz, crop_sz_px))
+
     return crop_sz_px
 
 
-def crop_scan_artefacts(img, config):
+def crop_scan_artefacts(img, config, **kwargs):
     """Crop away galvo-scanning image artefacts."""
-    crop_sz_px = get_scan_artefact_sz(config=config)
+    crop_sz_px = get_scan_artefact_sz(config=config, **kwargs)
     img = crop_rem_rrcc(img, 0, 0, crop_sz_px, 0)
     return img
 
@@ -217,12 +270,13 @@ def get_sat_mask(img, config):
     return mask
 
 
-def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False):
+def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_artefacts=True, **kwargs):
     """Process an image for analysis and display.
 
     Obtain specified mapping range and gamma values, crop scan artefacts and
     correct field illumination.
     """
+    verbosity = kwargs.get('verbosity')
     data = read_bin_file(file_name)
     config = read_cfg(file_name)
 
@@ -248,7 +302,13 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False):
         if ch in (0, 1):
             img = (img.astype('float')/2**16 - 0.5)*20
 
-        img = crop_scan_artefacts(img, config)
+        if crop_artefacts:
+            if verbosity is 'info':
+                print("Cropping scan artefacts...")
+            img = crop_scan_artefacts(img, config, **kwargs)
+        else:
+            if verbosity is 'info':
+                print("Scan artefact cropping disabled")
 
         if corr_fi:
             print("Correcting field illumination...")

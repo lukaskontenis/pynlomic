@@ -376,25 +376,29 @@ def get_scan_field_size_calib_flag(config):
 
 def get_scan_field_size_calib_date(config):
     return get_head_val(config, "Calibration", "Scan field calib date")
+
+
+def get_scan_field_calib_corr(config, **kwargs):
     """Get calibration correction for a physical scan field size.
 
     This function should be used to correct previous scan data if the scan
     field calibration is later determined to be wrong.
     """
-    scan_field_calib_date = None
-    has_calib = False
-    if 'Calibration' in config.sections():
-        has_calib = True
-        calibcfg = config['Calibration']
-        scan_field_calib_date = calibcfg.get('Scan field calib date', None)
+    verbosity = kwargs.get('verbosity')
+    calib_valid = get_scan_field_size_calib_flag(config)
+    if calib_valid:
+        return 1.0
 
-    # If no scan field calibration is defined or it is older than 2018.04.04,
-    # the scan field size calibration is wrong and needs to be corrected
-    if not has_calib or (has_calib and
-                         scan_field_calib_date < datetime(2018, 4, 4)):
+    calib_date = get_scan_field_size_calib_date(config)
+
+    if get_microscope_name(config) is 'LCM1' and calib_date < datetime(2018, 4, 4):
+        if verbosity is 'info':
+            print("Scan field size calibration for LCM1 is outdated, "
+                  "using 0.785x correction factor.")
         return 0.785
+    else:
+        print("Cannot determine whether scan field calibration is valid. Assuming it is.")
 
-    # Otherwise all is fine
     return 1.0
 
 
