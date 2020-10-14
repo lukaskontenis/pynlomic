@@ -118,7 +118,7 @@ def get_chan_units(chan_type):
 
 def get_def_chan_idx(config):  # pylint: disable=W0613
     """Get the default channel index."""
-    return 2
+    return 3
 
 
 def validate_chan_idx(config, chan_ind):  # pylint: disable=W0613
