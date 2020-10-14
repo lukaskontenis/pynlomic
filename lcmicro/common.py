@@ -55,8 +55,8 @@ class DataType(Enum):
     Tiling = 5
 
 
-class PixelCountLimit(Enum):
-    """Pixel count limit enum."""
+class PixelCountLimit():
+    """Pixel count limit struct."""
 
     RepRate = None
     SinglePulse = None
