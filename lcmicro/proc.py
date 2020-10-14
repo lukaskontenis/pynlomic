@@ -280,8 +280,13 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
     data = read_bin_file(file_name)
     config = read_cfg(file_name)
 
-    if rng is None:
+    if rng is not None:
+        if verbosity == 'info':
+            print("Using supplied mapping range: [{:d}, {:d}]".format(rng[0], rng[1]))
+    else:
         rng = get_cfg_range(config, chan_id=ch)
+        if rng is not None and verbosity == 'info':
+            print("Using config mapping range: [{:d}, {:d}]".format(rng[0], rng[1]))
 
     if gamma is None:
         gamma = get_cfg_gamma(config, ch=ch)
@@ -311,11 +316,15 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
                 print("Scan artefact cropping disabled")
 
         if corr_fi:
-            print("Correcting field illumination...")
+            if verbosity == 'info':
+                print("Correcting field illumination...")
             img = corr_field_illum(img, facpwr=get_nl_ord(config, ch))
+        else:
+            if verbosity == 'info':
+                print("Field illumination correction disabled")
 
         if isnone(rng):
-            rng = get_opt_map_rng(img=img, file_name=file_name)
+            rng = get_opt_map_rng(img=img, file_name=file_name, **kwargs)
 
     return [img, rng, gamma, data]
 
@@ -356,13 +365,14 @@ def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True,
     return mos
 
 
-def get_opt_map_rng(img=None, file_name=None):
+def get_opt_map_rng(img=None, file_name=None, **kwargs):
     """Get optimal mapping range for an image."""
+    vlvl = kwargs.get('verbosity')
     if isnone(file_name):
         print("Dataset file name has to be provided")
         return None
 
-    print("Estimating optimal data mapping range to 1% saturation.")
+    printmsg("Estimating optimal data mapping range to 1% saturation.", 'info', vlvl)
 
     dtype = get_data_type(file_name=file_name)
 
@@ -376,7 +386,7 @@ def get_opt_map_rng(img=None, file_name=None):
         #   3) basic mosaicing shouldn't require tiling functionality as the
         #       images simply have to be placed side by side. make_mosaic()
         #       should do that for multichannel data
-        print("Range estimation for tiled images doesn't yet work")
+        printmsg("Range estimation for tiled images doesn't yet work", 'warning', vlvl)
         return None
 
         # TODO: This should be done by make_mosaic_img
@@ -386,10 +396,10 @@ def get_opt_map_rng(img=None, file_name=None):
         #         data=data, file_name=file_name)
         # img = make_mosaic_img(data, mask, ij, remap=False)
 
-    print("Determining optimal mapping range...")
+    printmsg("Determining optimal mapping range...", 'info', vlvl)
     rng = get_frac_sat_rng(img)
 
-    print("Mapping range: [{:d} , {:d}]".format(rng[0], rng[1]))
+    printmsg("Mapping range: [{:d} , {:d}]".format(rng[0], rng[1]), 'info', vlvl)
     return rng
 
 

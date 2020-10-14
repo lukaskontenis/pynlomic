@@ -632,55 +632,64 @@ def get_data_type(config=None, file_name=None):
     return DataType.Invalid
 
 
-def print_data_info(config=None):
+def print_data_info(config=None, preffix=''):
     """Print information about the dataset."""
+    print(preffix + "Microscope name: {:s}".format(get_microscope_name(config)))
+    print(preffix + "Sample name: {:s}".format(get_sample_name(config)))
+
     dtype = get_data_type(config=config)
-    print("Data type: " + get_data_type_str(dtype))
+    print(preffix + "Data type: " + get_data_type_str(dtype))
 
     num_ch = get_num_chan(config)
-    print("Number of channels: " + str(num_ch))
+    print(preffix + "Number of channels: " + str(num_ch))
 
-    print("Channels: ", end='')
+    print(preffix + "Channels: ", end='')
     for ch_ind in range(num_ch):
         if ch_ind < num_ch-1:
             print(get_chan_name(config, ch_ind) + ', ', end='')
         else:
             print(get_chan_name(config, ch_ind))
 
-    print("Number of frames: " + str(get_num_frames(config)))
-
-    pixel_t = get_px_time(config)
-    rep_f = get_ex_rep_rate(config)
-    print("Pixel dwell time: {:2g} us".format(pixel_t*1E6))
-    print("Laser rep. rate: {:2g} MHz".format(rep_f*1E-6))
-
-    limits = get_px_cnt_limits(config)
-    print("Maximum pixel count limits:")
-    print("\tRep. rate: {:d} c.".format(limits.RepRate))
-    print("\tSingle-pulse: {:d} c.".format(limits.SinglePulse))
-    print("\tCount linearity, 10% loss: {:d} c.".format(limits.CountLinearity))
+    print(preffix + "Scan field size: {:.0f} µm".format(get_scan_field_size(config)))
+    print(preffix + "Field size calibrated: {:s}".format(str(get_scan_field_size_calib_flag(config))))
 
     frame_t = get_scan_frame_time(config)
     scan_t = get_total_scan_time(config)
     meas_t = get_total_meas_time(config)
     overhead_t = meas_t - scan_t
-    print("Frame scan time: {:.3g} s".format(frame_t))
-    print("Total scan time: " + make_human_time_str(scan_t))
-    print("Measurement time: " + make_human_time_str(meas_t))
-    print("Scan overhead: " + make_human_time_str(overhead_t))
-    print("Measurement scan time " +
-          "efficiency: {:.3g}".format(1-overhead_t/meas_t))
-    print("\n")
+    print(preffix + "Frame scan time: {:.3g} s".format(frame_t))
+    print(preffix + "Total scan time: " + make_human_time_str(scan_t))
+    print(preffix + "Measurement time: " + make_human_time_str(meas_t))
+    if meas_t > 0:
+        print(preffix + "Scan overhead: " + make_human_time_str(overhead_t))
+        print(preffix + "Measurement scan time " +
+              "efficiency: {:.3g}".format(1-overhead_t/meas_t))
+
+    print(preffix + "Pixel size: {:.2f} µm".format(get_scan_px_sz(config)))
+
+    print(preffix + "Number of frames: " + str(get_num_frames(config)))
+
+    pixel_t = get_px_time(config)
+    rep_f = get_ex_rep_rate(config)
+    print(preffix + "Pixel dwell time: {:2g} us".format(pixel_t*1E6))
+    print(preffix + "Laser rep. rate: {:2g} MHz".format(rep_f*1E-6))
+
+    limits = get_px_cnt_limits(config)
+    print(preffix + "Maximum pixel count limits:")
+    print(preffix + "\tRep. rate: {:d} c.".format(limits.RepRate))
+    print(preffix + "\tSingle-pulse: {:d} c.".format(limits.SinglePulse))
+    print(preffix + "\tCount linearity, 10% loss: {:d} c.".format(limits.CountLinearity))
 
     if dtype == DataType.ZStack:
+        print("\n")
         z_rng = get_z_pos_rng(config)
         z_step = get_z_pos_avg_step(config)
         z_span = get_z_pos_spa(config)
-        print("Z stack scan config:")
-        print("\tFrom: {:.3g} um".format(z_rng[0]*1E3))
-        print("\tTo: {:.3g} um".format(z_rng[1]*1E3))
-        print("\tSpan: {:3g} um".format(z_span*1E3))
-        print("\tAvg step: {:.3g} um".format(z_step*1E3))
+        print(preffix + "Z stack scan config:")
+        print(preffix + "\tFrom: {:.3g} um".format(z_rng[0]*1E3))
+        print(preffix + "\tTo: {:.3g} um".format(z_rng[1]*1E3))
+        print(preffix + "\tSpan: {:3g} um".format(z_span*1E3))
+        print(preffix + "\tAvg step: {:.3g} um".format(z_step*1E3))
 
 
 def get_tiling_cfg(config):

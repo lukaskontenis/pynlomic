@@ -15,7 +15,8 @@ import matplotlib.image as mpimg
 from scipy.optimize import curve_fit
 import configparser as cfg
 
-from lklib.util import isnone, isarray, handle_general_exception, get_color
+from lklib.util import isnone, isarray, handle_general_exception, get_color, \
+    printmsg
 from lklib.fileread import list_files_with_filter, rem_extension, \
     change_extension, list_files_with_extension
 from lklib.cfgparse import read_cfg
@@ -35,7 +36,8 @@ from lcmicro.cfgparse import get_sample_name, get_chan_name, get_laser_name, \
     get_chan_units, get_scan_frame_time, get_px_time, get_scan_field_size, \
     get_tiling_step, get_scan_px_sz, get_scan_date, get_operator_name, \
     get_sampe_id, get_sample_area_label, validate_chan_idx, get_cfg_range, \
-    get_data_type
+    get_data_type, print_chan_name, get_microscope_name, \
+    get_scan_field_size_calib_flag, print_data_info
 from lcmicro.tiling import get_tiling_grid_sz, get_tiling_data, \
     show_raw_tiled_img, tile_images
 from lcmicro.stab import get_stab_traces
@@ -241,18 +243,40 @@ def make_mosaic_fig(data=None, mask=None, ij=None, pad=0.02, rng=None):
 def gen_img_report(
         img=None, data=None, file_name=None, rng=None, chan_ind=None,
         gamma=None, chas=None, plot_raw_hist=True, plot_mapped_hist=True,
-        plot_sat_map=True, do_export_figure=True, fig_suffix='', corr_fi=True,
-        cmap=None, cm_sat=False, write_image=True,
-        write_unprocessed_grayscale=False):
-    """Generate a report figure for an image."""
+        plot_sat_map=True, do_export_figure=True, fig_suffix='', corr_fi=False,
+        cmap=None, cm_sat=False, write_image=True, export_log_image=True,
+        write_unprocessed_grayscale=False, verbosity='info', **kwargs):
+    """Generate a report figure for an image.
+
+    For the report generation to work correctly the header file should include
+    the 'Microscope' name in the 'Setup' section. For the scan artefact removal
+    to work correctly the artefact sizes should be added in
+    get_scan_artefact_sz() and the 'Scan field calib valid' field be true in
+    the 'Calibration' section.
+
+    Additional parameters:
+        crop_artefacts (bool) – remove scan flyback artefacts
+    """
     config = read_cfg(file_name)
+
+    if verbosity == 'info':
+        print("Processing file {:s}".format(file_name))
+        print("Options:")
+        print("\tExport image: {:s}".format(str(write_image)))
+        print("\tPlot raw histogram: {:s}".format(str(plot_raw_hist)))
+        print("\tPlot mapped histogram: {:s}".format(str(plot_mapped_hist)))
+        print("\tPlot saturation map: {:s}".format(str(plot_sat_map)))
+        print("Data info:")
+        print_data_info(config, preffix='\t')
+        print("\n")
 
     if isnone(chan_ind):
         chan_ind = get_def_chan_idx(config)
-        print("Channel index not specified assuming ch_ind={:d}".format(
+        print("Channel index not specified, assuming ch_ind={:d}".format(
             chan_ind))
 
     validate_chan_idx(config, chan_ind)
+    print_chan_name(config, chan_ind)
     chan_type = get_chan_det_type(config, chan_ind)
 
     if isnone(config):
@@ -369,7 +393,10 @@ def gen_img_report(
         else:
             export_figure(file_name, suffix=fig_suffix)
 
+    print("All done\n")
+
     return True
+
 
 def gen_img_reports(corr_fi=False, **args):
     ret_val = True
@@ -379,6 +406,7 @@ def gen_img_reports(corr_fi=False, **args):
             gen_img_report(chan_ind=ind, corr_fi=corr_fi, fig_suffix="_ch{:d}".format(ind), **args)
 
     return ret_val
+
 
 def gen_out_imgs(
         file_name=None, data=None, step_sz=None, rng=None, rng_override=None,
@@ -686,19 +714,19 @@ def gen_thg_psf_fig(file_name=None, type='distal', wavl=None, suptitle_suffix=No
         main_lin_axes = plt.subplot(grid[0:4, 0])
         res_axes = plt.subplot(grid[4, 0])
         main_log_axes = plt.subplot(grid[0:4, 1])
-        
+
         fit_gaussian_1d(
             zpos, ampl, plot=True, y_scale='lin',
             main_axes=main_lin_axes, res_axes=res_axes, center_z_axis_in_plot=True,
             plot_residuals=True, plot_fwhm=True,
             xlabel=xlabel, ylabel=ylabel, xlim=[-25, 25], **kwargs)
-        
+
         fit_gaussian_1d(
             zpos, ampl, plot=True, y_scale='log', y_axis_pos='right',
             main_axes=main_log_axes, center_z_axis_in_plot=True,
             plot_residuals=False, plot_fwhm=True,
             xlabel=xlabel, ylabel=ylabel)
-    
+
     if suptitle_suffix is None:
         if type is 'proximal':
             suptitle_suffix = 'proximal surface'
