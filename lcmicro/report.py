@@ -62,11 +62,11 @@ def make_img_title(config, template="fig", chan=None, print_exw=False,
 
         if print_exw and not isnone(laser_name):
             if not isnone(wavl) or not isnone(pwr):
-                title_str = title_str + ", Ex. "
+                title_str = title_str + ", Ex."
             if not isnone(wavl):
-                title_str = title_str + "{:.2f} um".format(wavl)
+                title_str = title_str + " {:.2f} µm".format(wavl)
             if not isnone(pwr):
-                title_str = title_str + "{:.1f} mW".format(pwr)
+                title_str = title_str + " {:.1f} mW".format(pwr)
         if chan is not None:
             if isarray(chan_name_str):
                 chan_pre = ["R: ", "G: ", "B: "]
