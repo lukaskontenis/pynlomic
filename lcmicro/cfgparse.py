@@ -51,6 +51,11 @@ def get_operator_name(config):
     return get_head_val(config, "Scan Info", "Operator")
 
 
+def get_microscope_name(config):
+    """Get the microscope name."""
+    return str(get_head_val(config, "Setup", "Microscope"))
+
+
 def get_num_chan(config):
     """Get the number of channels in dataset."""
     for chan_id in range(255):
@@ -68,6 +73,10 @@ def get_chan_name(config, chan):
             names.append(get_chan_name(config[indd], chan))
         return names
     return get_head_val(config, "Channel " + str(chan), "Name")
+
+
+def print_chan_name(config, ch_ind):
+    print('Using channel {:d}, {:s}'.format(ch_ind, get_chan_name(config, ch_ind)))
 
 
 def get_chan_hw_name(config, chan_ind):  # pylint: disable=W0613
@@ -361,7 +370,12 @@ def get_scan_resolution(config):
     return (nr + nc)/2
 
 
-def get_scan_field_calib_corr(config):
+def get_scan_field_size_calib_flag(config):
+    return get_head_val(config, "Calibration", "Scan field calib valid")
+
+
+def get_scan_field_size_calib_date(config):
+    return get_head_val(config, "Calibration", "Scan field calib date")
     """Get calibration correction for a physical scan field size.
 
     This function should be used to correct previous scan data if the scan
