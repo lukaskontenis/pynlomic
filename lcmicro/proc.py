@@ -403,13 +403,14 @@ def get_opt_map_rng(img=None, file_name=None, **kwargs):
     return rng
 
 
-def make_image(img=None, data=None, file_name=None, rng=None, gamma=None,
-               ch=2, corr_fi=True, cmap=None, cmap_sat=False):
+def make_image(
+        img=None, data=None, file_name=None, rng=None, gamma=None, cmap=None,
+        cmap_sat=False, map_scale='lin', **kwargs):
     """Make an image for display."""
-    if isnone(img) or isnone(data):
+    vlvl = kwargs.get('verbosity')
+    if isnone(img):
         [img, rng, gamma, data] = proc_img(
-            file_name=file_name, rng=rng, gamma=gamma, ch=ch,
-            corr_fi=corr_fi)
+            file_name=file_name, rng=rng, gamma=gamma, **kwargs)
 
     config = read_cfg(file_name)
 
@@ -428,6 +429,19 @@ def make_image(img=None, data=None, file_name=None, rng=None, gamma=None,
         if isnone(cmap):
             cmap = get_def_chan_cmap(config)
 
+        if map_scale == 'log':
+            printmsg('Using logarithmic scaling', 'info', vlvl)
+            unique_lvl = np.unique(img)
+            if unique_lvl[0] == 0:
+                step = np.diff(unique_lvl)[0]
+                if np.std(np.diff(unique_lvl)) < 1E-10:
+                    img_log = np.log10(img+step)
+                    img_log -= np.min(img_log)
+                    img_log = img_log/np.max(img_log)*255
+                    img = img_log
+                else:
+                    printmsg('Cannot apply logarithmic scaling', 'error', vlvl)
+
         img = bake_cmap(img/255, cmap=cmap, remap=False, cm_over_val='r',
                         cm_under_val='b')
     else:
@@ -437,6 +451,9 @@ def make_image(img=None, data=None, file_name=None, rng=None, gamma=None,
             mos_type = MosaicType.ZStack
         else:
             print("Unknown data type" + str(data_type))
+
+        if isnone(data):
+            data = read_bin_file(file_name)
 
         show_mosaic(data, file_name, mos_type=mos_type)
 

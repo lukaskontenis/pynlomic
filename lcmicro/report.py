@@ -286,9 +286,18 @@ def gen_img_report(
     if isinstance(file_name, type(str())):
         composite = False
         title_str = make_img_title(config, chan=chan_ind, print_exw=True)
+
         [img, img_raw, img_scaled, cmap, rng, gamma] = make_image(
             img=img, data=data, file_name=file_name, rng=rng, gamma=gamma,
-            ch=chan_ind, corr_fi=corr_fi, cmap=cmap, cmap_sat=cm_sat)
+            ch=chan_ind, corr_fi=corr_fi, cmap=cmap, cmap_sat=cm_sat,
+            verbosity=verbosity, **kwargs)
+
+        if export_log_image:
+            img_log = make_image(
+                img=img_raw, file_name=file_name, rng=rng, gamma=gamma, cmap=cmap,
+                cmap_sat=cm_sat, map_scale='log', verbosity=verbosity,
+                **kwargs)[0]
+
     else:
         composite = True
         title_str = make_img_title(config, chan=chan_ind, print_exw=True,
@@ -297,6 +306,11 @@ def gen_img_report(
             file_name, ofs=[None, None, None], chas=chas)
 
     [img, scalebar_sz] = add_scale_bar(img, pxsz=get_scan_px_sz(config))
+
+    if export_log_image:
+        img_log = add_scale_bar(img_log, pxsz=get_scan_px_sz(config))[0]
+
+    printmsg('Scale bar is {:.0f} µm'.format(scalebar_sz), 'info', verbosity)
 
     grid = plt.GridSpec(2, 4)
     if not plot_raw_hist and not plot_mapped_hist and not plot_sat_map:
@@ -312,6 +326,11 @@ def gen_img_report(
     if write_unprocessed_grayscale:
         plt.imsave(file_name[:file_name.rfind('.')] + fig_suffix + 'img_u' + '.png',
                    img_raw, vmin=rng[0], vmax=rng[1], cmap="gray")
+
+    if export_log_image:
+        printmsg('Exporting logarithmic scale image...', 'info', verbosity)
+        mpimg.imsave(file_name[:file_name.rfind('.')] + fig_suffix + 'log_img' + '.png', img_log)
+
 
     if chan_type == DetectorType.Counter:
         img_stats = CountImageStats()
@@ -772,7 +791,7 @@ def calib_laser_power(file_name=None, trim_pts=2):
         else:
             file_name = file_names[0]
             print("Multiple text files found, using the first one")
-            
+
     print("Loading {:s} calibration file...".format(file_name))
     D = np.loadtxt(file_name)
     print("Done")
