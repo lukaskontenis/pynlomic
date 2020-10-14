@@ -122,15 +122,15 @@ def get_def_chan_idx(config):  # pylint: disable=W0613
 
 
 def validate_chan_idx(config, chan_ind):  # pylint: disable=W0613
-    """Validate the channel index.
+    """Validate the channel index."""
+    for sec_name in config.sections():
+        if sec_name.find('Channel') == 0:
+            ch = int(sec_name.split('Channel')[1])
+            if chan_ind == ch:
+                return True
 
-    TODO: This should read the config file to check which channels are defined.
-    """
-    if chan_ind < 0 or chan_ind > 2:
-        print("Unsupported channel index")
-        return False
-    else:
-        return True
+    print("Unsupported channel index")
+    return False
 
 
 def get_nl_ord(config, chan):
