@@ -317,8 +317,9 @@ def gen_img_report(
         print("\n")
 
     if isnone(chan_ind):
+        print("Channel index not specified, looking for SHG channel...")
         chan_ind = get_def_chan_idx(config)
-        print("Channel index not specified, assuming ch_ind={:d}".format(
+        print("SHG channel found at ch_ind={:d}".format(
             chan_ind))
 
     validate_chan_idx(config, chan_ind)
