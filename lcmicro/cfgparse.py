@@ -12,7 +12,8 @@ from datetime import datetime
 import numpy as np
 
 from lklib.util import isnone, isarray
-from lklib.string import timestamp_str_to_seconds, make_human_time_str
+from lklib.string import timestamp_str_to_seconds, make_human_time_str,\
+    find_str_in_list
 from lklib.cfgparse import read_cfg, get_cfg_section, get_head_val
 
 from lcmicro.common import DetectorType, PixelCountLimit, DataType, \
@@ -117,8 +118,11 @@ def get_chan_units(chan_type):
 
 
 def get_def_chan_idx(config):  # pylint: disable=W0613
-    """Get the default channel index."""
-    return 3
+    """Get SHG channel index."""
+    num_chan = get_num_chan(config)
+    chan_names = [get_chan_name(config, ind) for ind in range(num_chan)]
+    return find_str_in_list(
+        'SHG', chan_names, exact_match=True, return_match_index=True)
 
 
 def validate_chan_idx(config, chan_ind):  # pylint: disable=W0613
