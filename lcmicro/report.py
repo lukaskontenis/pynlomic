@@ -8,6 +8,8 @@ Contact: dse.ssd@gmail.com
 import re
 from shutil import copyfile
 
+import cv2
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -213,6 +215,50 @@ def make_caption_str(
             caption_str += ', Area ' + sample_area_label
 
     return caption_str
+
+
+def export_img_png_tiff(file_name=None, verbosity='info', chan_ind=None, **kwargs):
+    """Export an image as a TIFF file."""
+    config = read_cfg(file_name)
+
+    if verbosity == 'info':
+        print("Processing file {:s}".format(file_name))
+        print("Data info:")
+        print_data_info(config, preffix='\t')
+        print("\n")
+
+    if isnone(chan_ind):
+        print("Channel index not specified, looking for SHG channel...")
+        chan_ind = get_def_chan_idx(config)
+        print("SHG channel found at ch_ind={:d}".format(
+            chan_ind))
+
+    validate_chan_idx(config, chan_ind)
+    print_chan_name(config, chan_ind)
+    chan_type = get_chan_det_type(config, chan_ind)
+
+    if isnone(config):
+        print("Could not obtain config data, cannot generate image.")
+        return False
+
+    img, raw_img = make_image(
+        file_name=file_name, ch=chan_ind, verbosity=verbosity, **kwargs)[0:2]
+
+    # Blank top-left pixel, it usually contains garbge data
+    raw_img[0, 0] = 0
+
+    if np.max(raw_img) > 2**16:
+        print("Data does not fit into 16 bits, truncating will occur")
+
+    img_file_name = change_extension(file_name, '.png')
+    print("Writing '{:s}'".format(img_file_name))
+    img2 = np.round(img[:, :, 0:3]*255).astype('uint8')
+    cv2.imwrite(img_file_name, cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
+
+    raw_img_file_name = change_extension(file_name, '.tif')
+    print("Writing '{:s}'".format(raw_img_file_name))
+    cv2.imwrite(raw_img_file_name, raw_img.astype('uint16'))
+    print("All done")
 
 
 def make_mosaic_fig(data=None, mask=None, ij=None, pad=0.02, rng=None):
