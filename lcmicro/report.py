@@ -305,6 +305,9 @@ def gen_img_report(
     """
     config = read_cfg(file_name)
 
+    if config is None:
+        raise(Exception("Config file for '{:s}' not found".format(file_name)))
+
     if verbosity == 'info':
         print("Processing file {:s}".format(file_name))
         print("Options:")
