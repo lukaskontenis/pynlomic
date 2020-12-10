@@ -1,5 +1,21 @@
+v0.1.0
+- Basic PIPO and NLPS functionality implemented
+- polarimetry is now a submodule
+- SHG channel index now determined automatically
+
+v0.0.3
+- New functions to calculate and plot retardance and transmission for waveplates
+- New gen_img_report script
+- Improved THG PSF figure
+- Logarithmic image export option added
+- Improved microscope data handling, support for LCM1 and FF microscopes
+- Improved scan field calibration correction
 
 v0.0.2
-
 - New function gen_thg_psf_fig
 - New function calib_laser_power
+
+v0.0.1
+- Initial microscopy code from lklib with common, proc, report, stab, tiling and cfparse modules
+
+
