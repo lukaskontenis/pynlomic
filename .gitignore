@@ -3,3 +3,8 @@ lcmicro/__pycache__/
 lcmicro/*/__pycache__/
 lcmicro.egg-info/
 dist/
+docs/
+examples/
+*.png
+Design notes.txt
+
