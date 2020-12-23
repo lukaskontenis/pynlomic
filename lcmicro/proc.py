@@ -19,7 +19,8 @@ from lcmicro.cfgparse import get_idx_mask, get_scan_field_size, \
     get_scan_frame_time, get_scan_px_sz, get_px_time, get_ex_rep_rate, \
     get_cfg_range, get_cfg_gamma, get_data_type, get_nl_ord, \
     get_def_chan_idx, get_px_cnt_limit, get_px_bckgr_count, get_idx_ts_ms, \
-    get_idx_z_pos, get_chan_name, get_chan_filter_name, get_microscope_name
+    get_idx_z_pos, get_chan_name, get_chan_filter_name, get_microscope_name, \
+    parse_chan_idx
 
 
 def get_chan_frames(data=None, config=None, chan=2):
@@ -295,11 +296,11 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
         gamma = 1
 
     data_type = get_data_type(config=config)
-    if data_type == DataType.SingleImage or data_type == DataType.Average:
+    if data_type in [DataType.SingleImage, DataType.Average, DataType.TimeLapse]:
         if data_type == DataType.SingleImage:
             img = data[:, :, ch]
 
-        if data_type == DataType.Average:
+        if data_type in [DataType.Average, DataType.TimeLapse]:
             img = get_chan_sum(data=data, config=config, chan=ch)
 
         # Convert image to volts for analog channels
@@ -308,11 +309,11 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
             img = (img.astype('float')/2**16 - 0.5)*20
 
         if crop_artefacts:
-            if verbosity is 'info':
+            if verbosity == 'info':
                 print("Cropping scan artefacts...")
             img = crop_scan_artefacts(img, config, **kwargs)
         else:
-            if verbosity is 'info':
+            if verbosity == 'info':
                 print("Scan artefact cropping disabled")
 
         if corr_fi:
@@ -328,6 +329,37 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
 
     return [img, rng, gamma, data]
 
+
+def load_pipo(file_name=None, chan_ind=None):
+    """Load dataset as a PIPO map.
+
+    The images in the dataset are summed to one pixel per state.
+    """
+    config = read_cfg(file_name)
+    chan_ind = parse_chan_idx(config, chan_ind)
+
+    print("Reading '{:s}'...".format(file_name), end='')
+    data = read_bin_file(file_name)
+    print('OK')
+
+    num_chan = 4
+    num_img = data.shape[2]/num_chan
+    num_psg_states = num_psa_states = np.sqrt(num_img)
+    if num_psg_states - int(num_psg_states) != 0:
+        print("There are {:d} images in the dataset, which does not correspond to any NxN PIPO sequence".format(num_img))
+
+    num_psg_states = int(num_psg_states)
+    num_psa_states = int(num_psa_states)
+    pipo_iarr = np.ndarray([num_psa_states, num_psg_states])
+
+    print("Assuming PSA-first order")
+    for ind_psg in range(num_psg_states):
+        for ind_psa in range(num_psa_states):
+            frame_ind = (ind_psa + ind_psg*num_psa_states)*num_chan + chan_ind
+            img = data[:, :, frame_ind]
+            pipo_iarr[ind_psa, ind_psg] = np.sum(img)
+
+    return pipo_iarr
 
 def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True,
                     rng=None):
@@ -415,7 +447,7 @@ def make_image(
     config = read_cfg(file_name)
 
     data_type = get_data_type(config=config)
-    if data_type in (DataType.SingleImage, DataType.Average):
+    if data_type in (DataType.SingleImage, DataType.Average, DataType.TimeLapse):
         img_raw = img
 
         if cmap_sat:
