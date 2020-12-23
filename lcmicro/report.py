@@ -7,6 +7,7 @@ Contact: dse.ssd@gmail.com
 """
 import re
 from shutil import copyfile
+import platform
 
 import cv2
 
@@ -219,6 +220,11 @@ def make_caption_str(
 
 def export_img_png_tiff(file_name=None, verbosity='info', chan_ind=None, **kwargs):
     """Export an image as a TIFF file."""
+
+    if platform.architecture()[0] != '64bit':
+        print("Running in 32-bit mode will likely fail for datasets larger "
+              "than 500 MB.\nConsider installing 64-bit Python.")
+
     config = read_cfg(file_name)
 
     if verbosity == 'info':
