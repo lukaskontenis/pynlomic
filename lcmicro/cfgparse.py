@@ -117,6 +117,16 @@ def get_chan_units(chan_type):
     return chan_units
 
 
+def parse_chan_idx(config, chan_ind=None):
+    """Get SHG channel index if none specified."""
+    if chan_ind is None:
+        chan_ind = get_def_chan_idx(config)
+        print("Channel index not specified, using SHG channel ind {:d} from "
+              "config file".format(chan_ind))
+
+    return chan_ind
+
+
 def get_def_chan_idx(config):  # pylint: disable=W0613
     """Get SHG channel index."""
     num_chan = get_num_chan(config)
