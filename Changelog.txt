@@ -1,3 +1,17 @@
+v0.3.1
+- Polarization sequence generation and validation
+- SHG NSMP PSG LCP state bugfix
+- PSG and PSA swapped order bugfix (no effect for symmetric PIPO)
+
+v0.3.0
+- PIPO fitting for zcq
+
+v0.2.1
+- PIPO dataset reading and plotting
+
+v0.1.2
+- Scripts and tests now included in PyPi
+ 
 v0.1.0
 - Basic PIPO and NLPS functionality implemented
 - polarimetry is now a submodule
