@@ -8,4 +8,7 @@ examples/
 *.png
 *.gif
 Design notes.txt
+todo.txt
+*.vscode/
+scripts/PolStates.dat
 
