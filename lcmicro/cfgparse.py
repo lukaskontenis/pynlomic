@@ -635,7 +635,7 @@ def get_data_type(config=None, file_name=None):
         # Get Z positions
         Z = get_idx_z_pos(config)
 
-        if np.std(Z) == 0:
+        if np.std(Z) < 0.001:
             # If the Z values are all the same the data must be a time lapse
             return DataType.TimeLapse
         else:
