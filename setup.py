@@ -27,6 +27,7 @@ setuptools.setup(
         'scripts/calib_laser_power.py',
         'scripts/fit_pipo.py',
         'scripts/gen_img_report.py',
+        'scripts/gen_pol_state_sequence.py',
         'scripts/lcmicro_to_png_tiff.py',
         'scripts/make_psf_figure.py',
         'scripts/show_pipo.py',
@@ -36,7 +37,8 @@ setuptools.setup(
         'scripts/sim_pipo_collagen_hr.bat',
         'scripts/sim_pipo_zcq.bat',
         'scripts/sim_pipo_zcq_hr.bat',
-        'scripts/sim_zcq_pipo_anim.py']),
+        'scripts/sim_zcq_pipo_anim.py',
+        'scripts/verify_pol_state_sequence.py']),
         ('tests', [
         'tests/pipo_8x8_pol_states.dat',
         'tests/test_polarimetry_lin.py',
