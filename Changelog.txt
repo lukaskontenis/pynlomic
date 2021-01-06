@@ -1,3 +1,7 @@
+v0.3.2
+- c6v PIPO fitting implemented
+- Lookup table fit acceleration implemented for c6v
+
 v0.3.1
 - Polarization sequence generation and validation
 - SHG NSMP PSG LCP state bugfix

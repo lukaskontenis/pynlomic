@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="lcmicro",
-    version="0.3.1",
+    version="0.3.2",
     author="Lukas Kontenis",
     author_email="dse.ssd@gmail.com",
     description="A Python library for nonlinear microscopy and polarimetry.",
@@ -40,6 +40,8 @@ setuptools.setup(
         'scripts/sim_zcq_pipo_anim.py',
         'scripts/verify_pol_state_sequence.py']),
         ('tests', [
+        'tests/test_fit_pipo_c6v.py',
+        'tests/test_fit_pipo_zcq.py',
         'tests/pipo_8x8_pol_states.dat',
         'tests/test_polarimetry_lin.py',
         'tests/test_polarimetry_nl.py',
