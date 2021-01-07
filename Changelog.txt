@@ -1,3 +1,8 @@
+v0.4.0
+- Image PIPO fitting added, works fir acceleration too
+- Parameter bounds added for c6v and zcq models
+- Binning and cropping added for load_pipo
+
 v0.3.2
 - c6v PIPO fitting implemented
 - Lookup table fit acceleration implemented for c6v
