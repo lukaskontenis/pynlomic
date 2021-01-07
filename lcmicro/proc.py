@@ -330,10 +330,10 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
     return [img, rng, gamma, data]
 
 
-def load_pipo(file_name=None, chan_ind=None):
+def load_pipo(file_name=None, chan_ind=None, binsz='all', cropsz=None):
     """Load dataset as a PIPO map.
 
-    The images in the dataset are summed to one pixel per state.
+    If binsz == 'all', the images in the dataset are summed to a single pixel.
     """
     config = read_cfg(file_name)
     chan_ind = parse_chan_idx(config, chan_ind)
@@ -350,14 +350,29 @@ def load_pipo(file_name=None, chan_ind=None):
 
     num_psg_states = int(num_psg_states)
     num_psa_states = int(num_psa_states)
-    pipo_iarr = np.ndarray([num_psa_states, num_psg_states])
+    if binsz == 'all':
+        pipo_iarr = np.ndarray([num_psa_states, num_psg_states])
+    else:
+        num_row, num_col = np.shape(data)[0:2]
+        if cropsz:
+            num_row = cropsz[1] - cropsz[0]
+            num_col = cropsz[3] - cropsz[2]
+        pipo_iarr = np.ndarray([num_row, num_col, num_psa_states, num_psg_states])
+
+    if cropsz:
+        print("Cropping image to " + str(cropsz) + " px")
 
     print("Assuming PSA-first order")
     for ind_psg in range(num_psg_states):
         for ind_psa in range(num_psa_states):
             frame_ind = (ind_psa + ind_psg*num_psa_states)*num_chan + chan_ind
             img = data[:, :, frame_ind]
-            pipo_iarr[ind_psa, ind_psg] = np.sum(img)
+            if cropsz:
+                img = img[cropsz[0]:cropsz[1], cropsz[2]:cropsz[3]]
+            if binsz == 'all':
+                pipo_iarr[ind_psa, ind_psg] = np.sum(img)
+            else:
+                pipo_iarr[:, :, ind_psa, ind_psg] = img
 
     return pipo_iarr
 
