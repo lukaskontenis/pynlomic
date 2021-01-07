@@ -22,15 +22,23 @@ Contact: dse.ssd@gmail.com
 # flake8: noqa
 # pylint: skip-file
 
-file_name = '18_01_04_.629_.dat'
-rng = [0, 22000]
-gamma = 1
-
-print("=== lcmicro ===")
-print("Running image report generation script...")
-
+import sys
+from lcmicro.dataio import get_microscopy_data_file_name
 from lklib.util import handle_general_exception
 from lcmicro.report import gen_img_report
+
+print("=== lcmicro ===")
+print("=== Image report ===")
+
+file_name = None
+rng = None
+gamma = 1
+
+num_args = len(sys.argv)
+if num_args < 2:
+    file_name = get_microscopy_data_file_name()
+else:
+    file_name = sys.argv[1]
 
 try:
     gen_img_report(file_name=file_name, corr_fi=False, rng=rng, gamma=gamma, chan_ind=3)
