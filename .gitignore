@@ -11,4 +11,5 @@ Design notes.txt
 todo.txt
 *.vscode/
 scripts/PolStates.dat
+scripts/*accel*.npy
 
