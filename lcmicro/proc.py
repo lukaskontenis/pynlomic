@@ -330,7 +330,7 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
     return [img, rng, gamma, data]
 
 
-def load_pipo(file_name=None, chan_ind=None, binsz='all', cropsz=None):
+def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
     """Load dataset as a PIPO map.
 
     If binsz == 'all', the images in the dataset are summed to a single pixel.
