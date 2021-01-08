@@ -12,4 +12,6 @@ todo.txt
 *.vscode/
 scripts/PolStates.dat
 scripts/*accel*.npy
+scripts/*accel*.zip
+
 

@@ -1,3 +1,11 @@
+v0.5.0
+- Multipage TIFF file export implemented
+- Support for PIPONATOR TIFF files
+- PIPO image simulation implemented
+
+v0.4.1
+- Updated lklib required version
+
 v0.4.0
 - Image PIPO fitting added, works fir acceleration too
 - Parameter bounds added for c6v and zcq models
