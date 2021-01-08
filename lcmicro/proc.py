@@ -7,9 +7,11 @@ Contact: dse.ssd@gmail.com
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.ndimage as ndimg
+import tifffile
 
 from lklib.util import isnone, printmsg
-from lklib.fileread import read_bin_file
+from lklib.fileread import read_bin_file, change_extension
 from lklib.cfgparse import read_cfg
 from lklib.image import crop_rem_rrcc, corr_field_illum, get_frac_sat_rng, \
     remap_img, bake_cmap, gen_preview_img
@@ -375,6 +377,227 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
                 pipo_iarr[:, :, ind_psa, ind_psg] = img
 
     return pipo_iarr
+
+def convert_pipo_to_tiff_piponator(**kwargs):
+    return convert_pipo_to_tiff(**kwargs, preset='piponator')
+
+
+def convert_pipo_to_tiff(
+        file_name=None, pipo_arr=None, preset='basic',
+        out_sz=None,
+        duplicate_first_and_last_state=False, add_dummy_ref_states=False,
+        reverse_psg_axis=False, sanity_check = False,
+        **kwargs):
+    """Convert a PIPO dataset to 16-bit multipage TIFF.
+
+    Multipage TIFF files are useful for moving data to other software. The
+    16-bit output ensures raw count numbers are maintained. Note, that not all
+    software supports 16-bit TIFF files.
+
+    The dataset can be supplied either directly (pipo_arr) or by specifying a
+    file name (file_name) to load the dataset from.
+
+    The 2D PIPO polarization states of the input dataset will be arranged
+    linearly as pages in the output TIFF file in PSA-major order with
+    reference states, if present, interleaved after each PSA cycle.
+
+    Output TIFF formatting can be adjusted either using presets or by
+    configuring format parameters directly.
+
+    To produce a TIFF file that is supported by PIPONATOR, set preset to
+    'piponator'.
+
+    Output image size can be specified using out_sz. If the output size is
+    different from the input image size, the images are resampled.
+
+    If the input dataset does not contain reference states, and
+    add_dummy_ref_states is True, dummy reference states are created by
+    duplicating the first input (PSG=0, PSA=0) state. This is useful when
+    the output must contain the reference states to maintain a particular
+    state order.
+
+    If the input dataset has unique PSG and PSA angle positions, and
+    duplicate_first_and_last_state to True, the last state is produced by
+    duplicating the first one. This is useful when the output must contain
+    samples at 0 and 180 PSG and PSA degrees, even though they should be the
+    same.
+
+    The reverse_psg_axis flag can be set to reverse the PSG angle order. This
+    is useful, when there is an axis reversal in the source data or for buggy
+    data importers.
+
+    For the TIFF file to be supported by PIPONATOR, the image size has to be
+    128x128, and the PIPO array must contain interleaved reference
+    states (which are called bleach states in PIPONATOR). Furthermore, the
+    first and last PSG and PSA states must be identical, i.e. be at 0 deg and
+    180 deg. The interleaving sequence is:
+        PSG=0, PSA=0;
+        PSG=0, PSA=1;
+        ...
+        PSG=0, PSA=N-1;
+        REF State;
+        PSG=1, PSA=0;
+        PSG=1, PSA=1;
+        ...
+        PSG=N-1; PSA=N-1;
+        REF State
+
+    In addition, the reverse_psg_axis flag has to be set. It seems PIPONATOR
+    has a PSG axis reverse bug at least in v12.38.
+    """
+    if preset not in ['basic', 'piponator']:
+        print("Unsupported preset")
+        return None
+
+    if preset == 'piponator':
+        out_sz = 128
+        duplicate_first_and_last_state = True
+        add_dummy_ref_states = True
+        reverse_psg_axis = True
+    elif preset == 'basic':
+        pass
+
+    if pipo_arr is None:
+        pipo_arr = load_pipo(file_name, **kwargs).astype('uint16')
+
+    num_row, num_col, num_psg, num_psa = np.shape(pipo_arr)
+    print("Input dataset size: {:d}x{:d}p px, {:d}x{:d} PSGxPSA".format(
+        num_row, num_col, num_psg, num_psa))
+
+    if num_row != num_col:
+        print("This function was only tested for square images")
+
+    if duplicate_first_and_last_state:
+        print("Output dataset with duplicate first and last PSG and PSA states"
+              " requested, but the input dataset contains unique PSG and PSA "
+              "states. PSG=0 and PSA=0 states will be duplicated and "
+              "appended.")
+        # Add +1 to number of PSG and PSA states that will be filled using the
+        # the available input states
+        num_psg += 1
+        num_psa += 1
+
+    num_states = num_psg*num_psa
+
+    if add_dummy_ref_states:
+        print("Output dataset with reference states requested, but the input "
+              "dataset does not contain any. The PSG=0, PSA=0 state will be "
+              "duplicated to make a dummy reference set.")
+        # Reference states are usually measured after each PSA cycle. There are
+        # as many reference states as there are PSG states, for each of which a
+        # PSA state cycle is performed. Add this number to the total number of
+        # states
+        num_states += num_psg
+
+    # Build output TIFF file name
+    tiff_file_name = change_extension(file_name, '.tiff')
+
+    # Initialize output
+    if out_sz is None:
+        out_row = num_row
+        out_col = num_col
+    else:
+        out_row = out_col = out_sz
+
+    pipo_arr_out = np.ndarray([num_states, out_row, out_col])
+
+    if num_row != out_row or num_col != out_col:
+        print("Image will be resampled to 128x128")
+
+    # Calculate the factor to resample the input image to output size
+    # Even though this takes the minimum over x/y, the function will likely
+    # not work for non-square images.
+    resample_fac = np.min([out_row/num_row, out_col/num_col])
+
+    # Build PSG index range based on reverse flag
+    if reverse_psg_axis:
+        psg_range = range(num_psg-1, -1, -1)
+    else:
+        psg_range = range(num_psg)
+
+    ind_state = 0
+    img_ref = None
+
+    # Loop over PSG and PSA to build the linear array for TIFF pages
+    for ind_psg in psg_range:
+        for ind_psa in range(num_psa):
+            # ind_psg, ind_psa loop over logical states, which take data
+            # reodering and duplication flags into account
+            # ind_psg_in, ind_psa_in index the actual input data
+            #
+            # Start by assuming the logical and actual indices are the same
+            ind_psg_in = ind_psg
+            ind_psa_in = ind_psa
+
+            if duplicate_first_and_last_state:
+                # When duplicating take the 0-th actual index when the logical
+                # index is last
+                if ind_psg == num_psg - 1:
+                    ind_psg_in = 0
+
+                if ind_psa == num_psa - 1:
+                    ind_psa_in = 0
+
+            # Take the input image and resample it to output size
+            # Even though a 'zoom' function sounds funny, it works on 16-bit
+            # data stored as ndarray. PIL, OpenCV, etc. either need conversion
+            # back and forth or don't even work on uint16 data
+            img_out = ndimg.zoom(
+                pipo_arr[:, :, ind_psg_in, ind_psa_in], resample_fac)
+
+            if add_dummy_ref_states and img_ref is None:
+                # Copy the PSG=0, PSA=0 state to use as a dummy for all
+                # reference states
+                img_ref = img_out.copy()
+
+            # Assign the output image in a linearly incrementing way
+            # The linear increment is crucial as it allows easy reference state
+            # interleaving
+            pipo_arr_out[ind_state, :, :] = img_out
+            ind_state += 1
+
+            if add_dummy_ref_states and ind_psa == num_psa - 1:
+                # Add a reference state after each PSA cycle
+                pipo_arr_out[ind_state, :, :] = img_ref
+                ind_state += 1
+
+    print("Output dataset size: {:d}x{:d}p px, {:d} interleaved states".format(
+        out_row, out_col, np.shape(pipo_arr_out)[0]))
+
+    if sanity_check:
+        # Perform a sanity check by undoing all data formatting steps and
+        # checking whether the output data is the same as the input
+        check = pipo_arr[0, 0, :, :]
+        data = pipo_arr_out[:, 0, 0]
+
+        if add_dummy_ref_states:
+            data = np.delete(data, np.arange(-1, num_states, num_psg+1)[1:])
+
+        data = np.reshape(data, [num_psa, num_psg])
+
+        if reverse_psg_axis:
+            data = np.flipud(data)
+
+        if duplicate_first_and_last_state:
+            data = data[:-1, :-1]
+
+        if not np.all(data == check):
+            plt.subplot(1, 3, 1)
+            plt.imshow(data)
+            plt.title('Output data')
+            plt.subplot(1, 3, 2)
+            plt.imshow(check)
+            plt.title('Check')
+            plt.subplot(1, 3, 3)
+            plt.imshow(data-check, cmap='coolwarm')
+            plt.title('Error')
+            plt.show()
+            raise Exception("TIFF export sanity check failed")
+
+    print("Writing '{:s}'".format(tiff_file_name))
+    tifffile.imwrite(tiff_file_name, pipo_arr_out)
+    print("All done")
+
 
 def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True,
                     rng=None):
