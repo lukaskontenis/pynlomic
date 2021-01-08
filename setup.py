@@ -25,11 +25,14 @@ setuptools.setup(
         data_files=[
         ('scripts', [
         'scripts/calib_laser_power.py',
+        'scripts/pipo_check_c6v.py',
         'scripts/fit_pipo_1point.py',
         'scripts/fit_pipo_img.py',
         'scripts/gen_img_report.py',
         'scripts/gen_pol_state_sequence.py',
         'scripts/lcmicro_to_png_tiff.py',
+        'scripts/make_pipo_tiff.py',
+        'scripts/make_pipo_tiff_piponator.py',
         'scripts/make_psf_figure.py',
         'scripts/plot_pipo_fit.py',
         'scripts/show_pipo.py',
