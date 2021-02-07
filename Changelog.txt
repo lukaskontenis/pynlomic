@@ -1,3 +1,6 @@
+v0.5.1
+- NSMP TIFF export implemented
+
 v0.5.0
 - Multipage TIFF file export implemented
 - Support for PIPONATOR TIFF files
