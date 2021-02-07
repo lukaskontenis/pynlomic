@@ -1,6 +1,6 @@
-"""Make a multipage PIPO TIFF image.
+"""Make a multipage NSMP TIFF image.
 
-Convert a PIPO dataset to a multipage TIFF file.
+Convert an NSMP dataset to a multipage TIFF file for NLPS.
 
 This script is part of lcmicro, a Python library for nonlinear microscopy and
 polarimetry.
@@ -14,13 +14,12 @@ Contact: dse.ssd@gmail.com
 import sys
 import os
 
-from lklib.fileread import list_files_with_extension
 from lklib.util import handle_general_exception
 
-from lcmicro.proc import convert_pipo_to_tiff
+from lcmicro.proc import convert_nsmp_to_tiff
 from lcmicro.dataio import get_microscopy_data_file_name
 
-print("=== PIPO to TIFF converter ===")
+print("=== NSMP TIFF converter ===")
 
 file_name = None
 num_args = len(sys.argv)
@@ -37,7 +36,7 @@ else:
     try:
         print("Converting '{:s}' to TIFF...".format(file_name))
 
-        convert_pipo_to_tiff(file_name)
+        convert_nsmp_to_tiff(file_name=file_name)
 
     except Exception:
         handle_general_exception("Conversion failed")
