@@ -24,6 +24,8 @@ from lcmicro.cfgparse import get_idx_mask, get_scan_field_size, \
     get_idx_z_pos, get_chan_name, get_chan_filter_name, get_microscope_name, \
     parse_chan_idx
 
+from lcmicro.polarimetry.dataio import load_nsmp
+
 
 def get_chan_frames(data=None, config=None, chan=2):
     """Get frames from the specified channel."""
@@ -335,6 +337,9 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
 def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
     """Load dataset as a PIPO map.
 
+    TODO: This function skips many of the data parsing routines implemented
+    in e.g. report image generation. These should be integrated here.
+
     If binsz == 'all', the images in the dataset are summed to a single pixel.
     """
     config = read_cfg(file_name)
@@ -378,6 +383,8 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
 
     return pipo_iarr
 
+
+
 def convert_pipo_to_tiff_piponator(**kwargs):
     return convert_pipo_to_tiff(**kwargs, preset='piponator')
 
@@ -386,9 +393,12 @@ def convert_pipo_to_tiff(
         file_name=None, pipo_arr=None, preset='basic',
         out_sz=None,
         duplicate_first_and_last_state=False, add_dummy_ref_states=False,
-        reverse_psg_axis=False, sanity_check = False,
+        reverse_psg_axis=False, sanity_check=False,
         **kwargs):
     """Convert a PIPO dataset to 16-bit multipage TIFF.
+
+    TODO: This function is very similar to convert_nsmp_to_tiff, the two should
+    probably be merged.
 
     Multipage TIFF files are useful for moving data to other software. The
     16-bit output ensures raw count numbers are maintained. Note, that not all
@@ -403,9 +413,6 @@ def convert_pipo_to_tiff(
 
     Output TIFF formatting can be adjusted either using presets or by
     configuring format parameters directly.
-
-    To produce a TIFF file that is supported by PIPONATOR, set preset to
-    'piponator'.
 
     Output image size can be specified using out_sz. If the output size is
     different from the input image size, the images are resampled.
@@ -596,6 +603,139 @@ def convert_pipo_to_tiff(
 
     print("Writing '{:s}'".format(tiff_file_name))
     tifffile.imwrite(tiff_file_name, pipo_arr_out)
+    print("All done")
+
+
+def convert_nsmp_to_tiff(
+        file_name=None, pimg_arr=None, preset='basic',
+        out_sz=None, add_dummy_ref_states=False, sanity_check=False,
+        **kwargs):
+    """Convert an NSMP dataset to a 16-bit multipage TIFF.
+
+    Multipage TIFF files are useful for moving data to other software. The
+    16-bit output ensures raw count numbers are maintained. Note, that not all
+    software supports 16-bit TIFF files.
+
+    The dataset can be supplied either directly (pimg_arr) or by specifying a
+    file name (file_name) to load the dataset from.
+
+    The input pimg_arr is a 4D array of polarization-resolved images in a 2D
+    PSG-PSA grid. The polarization grid is arranged linearly as pages in the
+    output TIFF file in PSA-major order with reference states, if present,
+    interleaved after each PSA cycle.
+
+    Output TIFF formatting can be adjusted either using presets or by
+    configuring format parameters directly.
+
+    Output image size can be specified using out_sz. If the output size is
+    different from the input image size, the images are resampled.
+
+    If the input dataset do not contain reference states, and
+    add_dummy_ref_states is True, dummy reference states are created by
+    duplicating the first input (0, 0 index) state. This is useful when
+    the output TIFF must contain the reference states to maintain a particular
+    state order.
+    """
+    if pimg_arr is None:
+        pimg_arr = load_nsmp(file_name, **kwargs).astype('uint16')
+
+    num_row, num_col, num_psg, num_psa = np.shape(pimg_arr)
+    print("Input dataset size: {:d}x{:d}p px, {:d}x{:d} PSGxPSA".format(
+        num_row, num_col, num_psg, num_psa))
+
+    if num_row != num_col:
+        print("This function was only tested for square images")
+
+    num_states = num_psg*num_psa
+
+    if add_dummy_ref_states:
+        print("Output dataset with reference states requested, but the input "
+              "dataset does not contain any. The PSG=0, PSA=0 state will be "
+              "duplicated to make a dummy reference set.")
+        # Reference states are usually measured after each PSA cycle. There are
+        # as many reference states as there are PSG states, for each of which a
+        # PSA state cycle is performed. Add this number to the total number of
+        # states
+        num_states += num_psg
+
+    # Build output TIFF file name
+    tiff_file_name = change_extension(file_name, '.tiff')
+
+    # Initialize output
+    if out_sz is None:
+        out_row = num_row
+        out_col = num_col
+    else:
+        out_row = out_col = out_sz
+
+    pimg_arr_out = np.ndarray([num_states, out_row, out_col])
+
+    if num_row != out_row or num_col != out_col:
+        print("Image will be resampled to 128x128")
+
+    # Calculate the factor to resample the input image to output size
+    # Even though this takes the minimum over x/y, the function will likely
+    # not work for non-square images.
+    resample_fac = np.min([out_row/num_row, out_col/num_col])
+
+    ind_state = 0
+    img_ref = None
+
+    # Loop over PSG and PSA to build the linear array for TIFF pages
+    for ind_psg in range(num_psg):
+        for ind_psa in range(num_psa):
+            # Take the input image and resample it to output size
+            # Even though a 'zoom' function sounds funny, it works on 16-bit
+            # data stored as ndarray. PIL, OpenCV, etc. either need conversion
+            # back and forth or don't even work on uint16 data
+            img_out = ndimg.zoom(
+                pimg_arr[:, :, ind_psg, ind_psa], resample_fac)
+
+            if add_dummy_ref_states and img_ref is None:
+                # Copy the PSG=0, PSA=0 state to use as a dummy for all
+                # reference states
+                img_ref = img_out.copy()
+
+            # Assign output images in a linearly incrementing way
+            # The linear increment is crucial as it allows easy reference state
+            # interleaving
+            pimg_arr_out[ind_state, :, :] = img_out
+            ind_state += 1
+
+            if add_dummy_ref_states and ind_psa == num_psa - 1:
+                # Add a reference state after each PSA cycle
+                pimg_arr_out[ind_state, :, :] = img_ref
+                ind_state += 1
+
+    print("Output dataset size: {:d}x{:d}p px, {:d} interleaved states".format(
+        out_row, out_col, np.shape(pimg_arr_out)[0]))
+
+    if sanity_check:
+        # Perform a sanity check by undoing all data formatting steps and
+        # checking whether the output data is the same as the input
+        check = pimg_arr[0, 0, :, :]
+        data = pimg_arr_out[:, 0, 0]
+
+        if add_dummy_ref_states:
+            data = np.delete(data, np.arange(-1, num_states, num_psg+1)[1:])
+
+        data = np.reshape(data, [num_psa, num_psg])
+
+        if not np.all(data == check):
+            plt.subplot(1, 3, 1)
+            plt.imshow(data)
+            plt.title('Output data')
+            plt.subplot(1, 3, 2)
+            plt.imshow(check)
+            plt.title('Check')
+            plt.subplot(1, 3, 3)
+            plt.imshow(data-check, cmap='coolwarm')
+            plt.title('Error')
+            plt.show()
+            raise Exception("TIFF export sanity check failed")
+
+    print("Writing '{:s}'".format(tiff_file_name))
+    tifffile.imwrite(tiff_file_name, pimg_arr_out)
     print("All done")
 
 
