@@ -218,9 +218,9 @@ def make_caption_str(
     return caption_str
 
 
-def export_img_png_tiff(file_name=None, verbosity='info', chan_ind=None, **kwargs):
-    """Export an image as a TIFF file."""
-
+def export_img_png_tiff(
+        file_name=None, verbosity='info', chan_ind=None, **kwargs):
+    """Export microscopy data as a PNG or TIFF file."""
     if platform.architecture()[0] != '64bit':
         print("Running in 32-bit mode will likely fail for datasets larger "
               "than 500 MB.\nConsider installing 64-bit Python.")
@@ -240,8 +240,8 @@ def export_img_png_tiff(file_name=None, verbosity='info', chan_ind=None, **kwarg
             chan_ind))
 
     validate_chan_idx(config, chan_ind)
+    chan_name = get_chan_name(config, chan_ind)
     print_chan_name(config, chan_ind)
-    chan_type = get_chan_det_type(config, chan_ind)
 
     if isnone(config):
         print("Could not obtain config data, cannot generate image.")
@@ -256,12 +256,12 @@ def export_img_png_tiff(file_name=None, verbosity='info', chan_ind=None, **kwarg
     if np.max(raw_img) > 2**16:
         print("Data does not fit into 16 bits, truncating will occur")
 
-    img_file_name = change_extension(file_name, '.png')
+    img_file_name = rem_extension(file_name) + chan_name + '.png'
     print("Writing '{:s}'".format(img_file_name))
     img2 = np.round(img[:, :, 0:3]*255).astype('uint8')
     cv2.imwrite(img_file_name, cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
 
-    raw_img_file_name = change_extension(file_name, '.tif')
+    raw_img_file_name = rem_extension(file_name) + chan_name + '.tiff'
     print("Writing '{:s}'".format(raw_img_file_name))
     cv2.imwrite(raw_img_file_name, raw_img.astype('uint16'))
     print("All done")

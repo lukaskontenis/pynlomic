@@ -77,7 +77,9 @@ def get_chan_name(config, chan):
 
 
 def print_chan_name(config, ch_ind):
-    print('Using channel {:d}, {:s}'.format(ch_ind, get_chan_name(config, ch_ind)))
+    """Print channel index and name."""
+    print('Using channel {:d}, {:s}'.format(
+        ch_ind, get_chan_name(config, ch_ind)))
 
 
 def get_chan_hw_name(config, chan_ind):  # pylint: disable=W0613
