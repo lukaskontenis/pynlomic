@@ -25,15 +25,15 @@ setuptools.setup(
         data_files=[
         ('scripts', [
         'scripts/calib_laser_power.py',
-        'scripts/pipo_check_c6v.py',
         'scripts/fit_pipo_1point.py',
         'scripts/fit_pipo_img.py',
         'scripts/gen_img_report.py',
         'scripts/gen_pol_state_sequence.py',
         'scripts/lcmicro_to_png_tiff.py',
-        'scripts/make_pipo_tiff.py',
+        'scripts/make_nsmp_tiff.py',
         'scripts/make_pipo_tiff_piponator.py',
         'scripts/make_psf_figure.py',
+        'scripts/pipo_check_c6v.py',
         'scripts/plot_pipo_fit.py',
         'scripts/show_pipo.py',
         'scripts/sim_collagen_anim.py',
@@ -45,9 +45,9 @@ setuptools.setup(
         'scripts/sim_zcq_pipo_anim.py',
         'scripts/verify_pol_state_sequence.py']),
         ('tests', [
+        'tests/pipo_8x8_pol_states.dat',
         'tests/test_fit_pipo_c6v.py',
         'tests/test_fit_pipo_zcq.py',
-        'tests/pipo_8x8_pol_states.dat',
         'tests/test_polarimetry_lin.py',
         'tests/test_polarimetry_nl.py',
         'tests/test_polarimetry_plot.py'])],
