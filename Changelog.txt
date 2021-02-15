@@ -1,3 +1,8 @@
+v0.5.2
+- SHG and THG image exporting
+- PSF figure generation drag and drop
+- Added missing make_nsmp_tiff script
+
 v0.5.1
 - NSMP TIFF export implemented
 
