@@ -1,3 +1,9 @@
+v0.5.3
+- Num images not an integer bugfix
+- Allow delta to vary -pi to pi in PIPO fitting
+- RMS error definition bugfix
+- Report total counts, rmse error and error fraction in PIPO fit figure
+
 v0.5.2
 - SHG and THG image exporting
 - PSF figure generation drag and drop
