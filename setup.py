@@ -26,6 +26,7 @@ setuptools.setup(
         ('scripts', [
         'scripts/calib_laser_power.py',
         'scripts/fit_pipo_1point.py',
+        'scripts/fit_pipo_1point_zcq.py',
         'scripts/fit_pipo_img.py',
         'scripts/gen_img_report.py',
         'scripts/gen_pol_state_sequence.py',
