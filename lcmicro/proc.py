@@ -350,7 +350,7 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
     print('OK')
 
     num_chan = 4
-    num_img = data.shape[2]/num_chan
+    num_img = int(data.shape[2]/num_chan)
     num_psg_states = num_psa_states = np.sqrt(num_img)
     if num_psg_states - int(num_psg_states) != 0:
         print("There are {:d} images in the dataset, which does not correspond to any NxN PIPO sequence".format(num_img))
