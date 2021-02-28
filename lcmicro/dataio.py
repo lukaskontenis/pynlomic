@@ -31,7 +31,7 @@ def get_microscopy_data_file_name(file_name=None):
         return None
     if len(file_names) == 1:
         file_name = file_names[0]
-        print("Found a single dat file '{:s}s', loading it".format(file_name))
+        print("Found a single dat file '{:s}', loading it".format(file_name))
         return file_name
     else:
         print("More than one dat file found, specify which to load")
