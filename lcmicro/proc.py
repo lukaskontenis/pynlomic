@@ -177,19 +177,19 @@ def get_scan_artefact_sz(file_name=None, config=None, **kwargs):
         # Observed artefact sizes for given scan field sizes and frame times
         field_sz = [780, 393, 157, 78, 39]
         artefact_sz_arr = (
-            (# 780 µm
+            (  # 780 µm
             [10],  # Frame time in s
             [41.5]),  # Artefact size in µm
-            (# 393 µm
+            (  # 393 µm
             [2.5],
             [27.5]),
-            (# 157 µm
+            (  # 157 µm
             [0.8],
             [16.5]),
-            (# 78 µm
+            (  # 78 µm
             [1],
             [3.14]),
-            (# 39 µm
+            (  # 39 µm
             [1],
             [2.4]))
     elif scope_name == 'FF':
@@ -204,13 +204,13 @@ def get_scan_artefact_sz(file_name=None, config=None, **kwargs):
         # 450,  22.5,   0.3,    35.4
         field_sz = [500, 450, 400]
         artefact_sz_arr = [
-            (# 500 µm
+            (  # 500 µm
             [22.5, 10],
             [39.9, 57.5]),
-            (# 450 µm
+            (  # 450 µm
             [22.5, 10],
             [35.4, 47.3]),
-            (# 400 µm
+            (  # 400 µm
             [40],
             [21])]
     else:
@@ -225,7 +225,8 @@ def get_scan_artefact_sz(file_name=None, config=None, **kwargs):
 
     # Find the closest calibration frame time
     frame_t_arr = artefact_sz_arr[ind_sz][0]
-    ind_ft = frame_t_arr.index(min(frame_t_arr, key=lambda x: abs(x-frame_t_s)))
+    ind_ft = frame_t_arr.index(
+        min(frame_t_arr, key=lambda x: abs(x-frame_t_s)))
 
     # Assume linear scaling with deviation from the calibration scan time to
     # the corresponding scan field size.
@@ -249,7 +250,8 @@ def get_scan_artefact_sz(file_name=None, config=None, **kwargs):
     crop_sz_px = int(crop_sz/umpx)
 
     if verbosity == 'info':
-        print("Scan artefact size is {:.1f} µm, {:d} px".format(crop_sz, crop_sz_px))
+        print("Scan artefact size is {:.1f} µm, {:d} px".format(
+            crop_sz, crop_sz_px))
 
     return crop_sz_px
 
@@ -275,7 +277,9 @@ def get_sat_mask(img, config):
     return mask
 
 
-def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_artefacts=True, **kwargs):
+def proc_img(
+        file_name=None, rng=None, gamma=None, ch=2, corr_fi=False,
+        crop_artefacts=True, **kwargs):
     """Process an image for analysis and display.
 
     Obtain specified mapping range and gamma values, crop scan artefacts and
@@ -287,11 +291,13 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
 
     if rng is not None:
         if verbosity == 'info':
-            print("Using supplied mapping range: [{:d}, {:d}]".format(rng[0], rng[1]))
+            print("Using supplied mapping range: [{:d}, {:d}]".format(
+                rng[0], rng[1]))
     else:
         rng = get_cfg_range(config, chan_id=ch)
         if rng is not None and verbosity == 'info':
-            print("Using config mapping range: [{:d}, {:d}]".format(rng[0], rng[1]))
+            print("Using config mapping range: [{:d}, {:d}]".format(
+                rng[0], rng[1]))
 
     if gamma is None:
         gamma = get_cfg_gamma(config, ch=ch)
@@ -300,7 +306,8 @@ def proc_img(file_name=None, rng=None, gamma=None, ch=2, corr_fi=False, crop_art
         gamma = 1
 
     data_type = get_data_type(config=config)
-    if data_type in [DataType.SingleImage, DataType.Average, DataType.TimeLapse]:
+    if data_type in [
+            DataType.SingleImage, DataType.Average, DataType.TimeLapse]:
         if data_type == DataType.SingleImage:
             img = data[:, :, ch]
 
@@ -353,7 +360,8 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
     num_img = int(data.shape[2]/num_chan)
     num_psg_states = num_psa_states = np.sqrt(num_img)
     if num_psg_states - int(num_psg_states) != 0:
-        print("There are {:d} images in the dataset, which does not correspond to any NxN PIPO sequence".format(num_img))
+        print("There are {:d} images in the dataset, ".format(num_img) +
+              "which does not correspond to any NxN PIPO sequence")
 
     num_psg_states = int(num_psg_states)
     num_psa_states = int(num_psa_states)
@@ -364,7 +372,8 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
         if cropsz:
             num_row = cropsz[1] - cropsz[0]
             num_col = cropsz[3] - cropsz[2]
-        pipo_iarr = np.ndarray([num_row, num_col, num_psa_states, num_psg_states])
+        pipo_iarr = np.ndarray(
+            [num_row, num_col, num_psa_states, num_psg_states])
 
     if cropsz:
         print("Cropping image to " + str(cropsz) + " px")
@@ -384,8 +393,8 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
     return pipo_iarr
 
 
-
 def convert_pipo_to_tiff_piponator(**kwargs):
+    """Convert a PIPO dataset to a PIPONATOR TIFF."""
     return convert_pipo_to_tiff(**kwargs, preset='piponator')
 
 
@@ -782,7 +791,8 @@ def get_opt_map_rng(img=None, file_name=None, **kwargs):
         print("Dataset file name has to be provided")
         return None
 
-    printmsg("Estimating optimal data mapping range to 1% saturation.", 'info', vlvl)
+    printmsg("Estimating optimal data mapping range to 1% saturation.",
+             'info', vlvl)
 
     dtype = get_data_type(file_name=file_name)
 
@@ -796,7 +806,8 @@ def get_opt_map_rng(img=None, file_name=None, **kwargs):
         #   3) basic mosaicing shouldn't require tiling functionality as the
         #       images simply have to be placed side by side. make_mosaic()
         #       should do that for multichannel data
-        printmsg("Range estimation for tiled images doesn't yet work", 'warning', vlvl)
+        printmsg("Range estimation for tiled images doesn't yet work",
+                 'warning', vlvl)
         return None
 
         # TODO: This should be done by make_mosaic_img
@@ -809,7 +820,8 @@ def get_opt_map_rng(img=None, file_name=None, **kwargs):
     printmsg("Determining optimal mapping range...", 'info', vlvl)
     rng = get_frac_sat_rng(img)
 
-    printmsg("Mapping range: [{:d} , {:d}]".format(rng[0], rng[1]), 'info', vlvl)
+    printmsg("Mapping range: [{:d} , {:d}]".format(rng[0], rng[1]),
+             'info', vlvl)
     return rng
 
 
@@ -825,7 +837,8 @@ def make_image(
     config = read_cfg(file_name)
 
     data_type = get_data_type(config=config)
-    if data_type in (DataType.SingleImage, DataType.Average, DataType.TimeLapse):
+    if data_type in (DataType.SingleImage, DataType.Average,
+                     DataType.TimeLapse):
         img_raw = img
 
         if cmap_sat:
@@ -1018,7 +1031,7 @@ def make_composite_img(file_names, method="CombineToRGB", ofs=None, chas=None,
         # scipy.misc.imsave('I1.png', I1)
         # scipy.misc.imsave('I.png', I)
 
-        return img
+        return None
     else:
         print("Unknown method" + method)
 
@@ -1026,9 +1039,7 @@ def make_composite_img(file_names, method="CombineToRGB", ofs=None, chas=None,
 
 
 def export_zstack_images(file_name, rng=None, chan_id=3):
-    """
-    Read Z-stack bin file and export images to files.
-    """
+    """Read Z-stack bin file and export images to files."""
     print("Reading file Z-stack file {:s}...".format(file_name))
     D = read_bin_file(file_name)
     print("Done")
@@ -1038,7 +1049,6 @@ def export_zstack_images(file_name, rng=None, chan_id=3):
 
     mask = get_idx_mask(config, chan_id)
     print("Found {:d} images with channel id {:d}".format(len(mask), chan_id))
-
 
     if isnone(rng):
         print("Mapping range not specified, setting to [0, max_value/10]")
@@ -1056,6 +1066,7 @@ def export_zstack_images(file_name, rng=None, chan_id=3):
     for ind in range(len(mask)):
         img_file = r".\img\img_{:d}.png".format(ind)
         print("Saving file " + img_file)
-        plt.imsave(img_file, D[:,:,mask[ind]], vmin=rng[0], vmax=rng[1], cmap="gray")
+        plt.imsave(img_file, D[:, :, mask[ind]], vmin=rng[0], vmax=rng[1],
+                   cmap="gray")
 
     print("All done")
