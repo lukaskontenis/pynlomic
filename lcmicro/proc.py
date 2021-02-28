@@ -639,7 +639,7 @@ def convert_nsmp_to_tiff(
     if pimg_arr is None:
         pimg_arr = load_nsmp(file_name, **kwargs).astype('uint16')
 
-    num_row, num_col, num_psg, num_psa = np.shape(pimg_arr)
+    num_row, num_col, num_psa, num_psg = np.shape(pimg_arr)
     print("Input dataset size: {:d}x{:d}p px, {:d}x{:d} PSGxPSA".format(
         num_row, num_col, num_psg, num_psa))
 
@@ -689,7 +689,7 @@ def convert_nsmp_to_tiff(
             # data stored as ndarray. PIL, OpenCV, etc. either need conversion
             # back and forth or don't even work on uint16 data
             img_out = ndimg.zoom(
-                pimg_arr[:, :, ind_psg, ind_psa], resample_fac)
+                pimg_arr[:, :, ind_psa, ind_psg], resample_fac)
 
             if add_dummy_ref_states and img_ref is None:
                 # Copy the PSG=0, PSA=0 state to use as a dummy for all
