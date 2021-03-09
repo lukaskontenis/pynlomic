@@ -491,6 +491,13 @@ def convert_pipo_to_tiff(
     if num_row != num_col:
         print("This function was only tested for square images")
 
+    num_total_counts = np.sum(pipo_arr)
+
+    print("Total number of counts: {:d}".format(num_total_counts))
+    if num_total_counts == 0:
+        print("WARNING: Channel has zero counts, the PMT was likely off of the "
+              "signal cable was not connected.")
+
     if duplicate_first_and_last_state:
         print("Output dataset with duplicate first and last PSG and PSA states"
               " requested, but the input dataset contains unique PSG and PSA "
