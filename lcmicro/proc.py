@@ -360,6 +360,12 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
 
     num_chan = 4
     num_img = int(data.shape[2]/num_chan)
+    if num_img == 65:
+        data = data[:, :, :-4]
+        num_img = int(data.shape[2]/num_chan)
+        print("There are 65 images in the dataset, assuming this is 8x8 PIPO "
+              "with an extra garbage state.")
+
     num_psg_states = num_psa_states = np.sqrt(num_img)
     if num_psg_states - int(num_psg_states) != 0:
         print("There are {:d} images in the dataset, ".format(num_img) +
