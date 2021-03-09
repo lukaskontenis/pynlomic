@@ -485,7 +485,7 @@ def convert_pipo_to_tiff(
         pipo_arr = load_pipo(file_name, **kwargs).astype('uint16')
 
     num_row, num_col, num_psg, num_psa = np.shape(pipo_arr)
-    print("Input dataset size: {:d}x{:d}p px, {:d}x{:d} PSGxPSA".format(
+    print("Input dataset size: {:d}x{:d} px, {:d}x{:d} PSGxPSA".format(
         num_row, num_col, num_psg, num_psa))
 
     if num_row != num_col:
