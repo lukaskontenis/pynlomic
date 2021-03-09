@@ -352,11 +352,11 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
     config = read_cfg(file_name)
     chan_ind = parse_chan_idx(config, chan_ind)
 
-    print("Reading '{:s}'...".format(file_name), end='')
     print("Channel index: {:d}".format(chan_ind))
 
+    print("Reading '{:s}'...".format(file_name), end='', flush=True)
     data = read_bin_file(file_name)
-    print('OK')
+    print('OK', flush=True)
 
     num_chan = 4
     num_img = int(data.shape[2]/num_chan)
