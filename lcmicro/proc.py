@@ -353,6 +353,8 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
     chan_ind = parse_chan_idx(config, chan_ind)
 
     print("Reading '{:s}'...".format(file_name), end='')
+    print("Channel index: {:d}".format(chan_ind))
+
     data = read_bin_file(file_name)
     print('OK')
 
