@@ -41,6 +41,7 @@ setuptools.setup(
         'scripts/sim_pipo.py',
         'scripts/sim_pipo_collagen.bat',
         'scripts/sim_pipo_collagen_hr.bat',
+        'scripts/sim_pipo_rtt.py',
         'scripts/sim_pipo_zcq.bat',
         'scripts/sim_pipo_zcq_hr.bat',
         'scripts/sim_zcq_pipo_anim.py',
