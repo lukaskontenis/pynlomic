@@ -5,7 +5,7 @@ Convert a PIPO dataset to a multipage TIFF file for PIPONATOR.
 This script is part of lcmicro, a Python library for nonlinear microscopy and
 polarimetry.
 
-Copyright 2015-2020 Lukas Kontenis
+Copyright 2015-2021 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 # flake8: noqa
@@ -20,7 +20,7 @@ from lklib.util import handle_general_exception
 from lcmicro.proc import convert_pipo_to_tiff_piponator
 from lcmicro.dataio import get_microscopy_data_file_name
 
-print("=== PIPONATOR TIFF converter ===")
+print("=== PIPONATOR TIFF converter ===", flush=True)
 
 file_name = None
 num_args = len(sys.argv)
@@ -32,7 +32,7 @@ else:
 if file_name is None:
     print("No input provided. Specify a file name using:")
     print("\t" + os.path.basename(__file__) + " scan.dat")
-    print("\nOr drag a dat file on the script icon.\n")
+    print("\nOr drag a DAT file on the script icon.\n")
 else:
     try:
         print("Converting '{:s}' to TIFF...".format(file_name))
@@ -42,4 +42,4 @@ else:
     except Exception:
         handle_general_exception("Conversion failed")
 
-input("Pess any key to close this window...")
+input("Press any key to close this window...")
