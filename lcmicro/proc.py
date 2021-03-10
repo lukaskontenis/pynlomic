@@ -495,7 +495,7 @@ def convert_pipo_to_tiff(
 
     num_total_counts = np.sum(pipo_arr)
 
-    print("Total number of counts: {:d}".format(num_total_counts))
+    print("Total number of counts: {:d}".format(int(num_total_counts)))
     if num_total_counts == 0:
         print("WARNING: Channel has zero counts, the PMT was likely off of the "
               "signal cable was not connected.")
