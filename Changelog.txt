@@ -1,3 +1,10 @@
+v0.5.4
+- Swapped PSG/PSA fixed in PIPONATOR TIFF exporting
+- Option to swap PSG/PSA channels added
+- Handle one state too many issue with 8x8 PIPO
+- Report channel number in load_pipo
+- Interchanged PSG/PSA fix in convert_nsmp_to_tiff
+
 v0.5.3
 - Num images not an integer bugfix
 - Allow delta to vary -pi to pi in PIPO fitting

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="lcmicro",
-    version="0.5.3",
+    version="0.5.4",
     author="Lukas Kontenis",
     author_email="dse.ssd@gmail.com",
     description="A Python library for nonlinear microscopy and polarimetry.",
@@ -22,7 +22,7 @@ setuptools.setup(
         'lklib>=0.0.15'
     ],
     python_requires='>=3.6',
-        data_files=[
+    data_files=[
         ('scripts', [
         'scripts/calib_laser_power.py',
         'scripts/fit_pipo_1point.py',
