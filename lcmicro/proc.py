@@ -473,11 +473,13 @@ def convert_pipo_to_tiff(
         print("Unsupported preset")
         return None
 
+    swap_psa_psg = False
     if preset == 'piponator':
         out_sz = 128
         duplicate_first_and_last_state = True
         add_dummy_ref_states = True
         reverse_psg_axis = True
+        swap_psa_psg = False
     elif preset == 'basic':
         pass
 
@@ -573,8 +575,12 @@ def convert_pipo_to_tiff(
             # Even though a 'zoom' function sounds funny, it works on 16-bit
             # data stored as ndarray. PIL, OpenCV, etc. either need conversion
             # back and forth or don't even work on uint16 data
-            img_out = ndimg.zoom(
-                pipo_arr[:, :, ind_psg_in, ind_psa_in], resample_fac)
+            if swap_psa_psg:
+                img_out = ndimg.zoom(
+                    pipo_arr[:, :, ind_psg_in, ind_psa_in], resample_fac)
+            else:
+                img_out = ndimg.zoom(
+                    pipo_arr[:, :, ind_psa_in, ind_psg_in], resample_fac)
 
             if add_dummy_ref_states and img_ref is None:
                 # Copy the PSG=0, PSA=0 state to use as a dummy for all
