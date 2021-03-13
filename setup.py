@@ -49,6 +49,7 @@ setuptools.setup(
         ('tests', [
         'tests/pipo_8x8_pol_states.dat',
         'tests/test_fit_pipo_c6v.py',
+        'tests/test_fit_pipo_img_c6v.py',
         'tests/test_fit_pipo_zcq.py',
         'tests/test_polarimetry_lin.py',
         'tests/test_polarimetry_nl.py',

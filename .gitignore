@@ -11,7 +11,6 @@ Design notes.txt
 todo.txt
 *.vscode/
 scripts/PolStates.dat
-scripts/*accel*.npy
-scripts/*accel*.zip
-
-
+*accel*.npy
+*accel*.zip
+fitdata.npy
