@@ -1,0 +1,6 @@
+Verbosity level variable is called 'vlvl'.
+
+vlvl=0 is silent
+vlvl=1 is normal, for typical use
+vlvl=2 is verbose, for more detail
+vlvl=3 is debug, for debug use
