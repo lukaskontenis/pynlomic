@@ -36,6 +36,7 @@ setuptools.setup(
         'scripts/make_psf_figure.py',
         'scripts/pipo_check_c6v.py',
         'scripts/plot_pipo_fit.py',
+        'scripts/plot_piponator_fit.py',
         'scripts/show_pipo.py',
         'scripts/sim_collagen_anim.py',
         'scripts/sim_pipo.py',
