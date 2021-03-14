@@ -49,9 +49,7 @@ setuptools.setup(
         'scripts/verify_pol_state_sequence.py']),
         ('tests', [
         'tests/pipo_8x8_pol_states.dat',
-        'tests/test_fit_pipo_c6v.py',
-        'tests/test_fit_pipo_img_c6v.py',
-        'tests/test_fit_pipo_zcq.py',
+        'tests/test_polarimetry_fit.py',
         'tests/test_polarimetry_lin.py',
         'tests/test_polarimetry_nl.py',
         'tests/test_polarimetry_plot.py'])],
