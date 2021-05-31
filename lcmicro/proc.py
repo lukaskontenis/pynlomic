@@ -372,6 +372,14 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None,
         print("There are {:d} images in the dataset, ".format(num_img) +
               "which does not correspond to any NxN PIPO sequence")
 
+    # Galvo-scanning flyback results in count pileup and signal distortion in
+    # the (0, 0) pixel. It could be set to zero, but in some cases the
+    # background might be legitimately nonzero and the analog input channel zero
+    # signal is not at zero value. Set the (0, 0) pixel value to the mean of its
+    # three adjacent pixels.
+    print("Replacing (0, 0) pixel values")
+    data[0, 0, :] = (data[0, 1, :] + data[1, 1, :] + data[1, 0, :]/3).astype('int')
+
     num_psg_states = int(num_psg_states)
     num_psa_states = int(num_psa_states)
     if binsz == 'all':
