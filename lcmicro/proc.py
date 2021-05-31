@@ -341,7 +341,8 @@ def proc_img(
     return [img, rng, gamma, data]
 
 
-def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
+def load_pipo(file_name=None, chan_ind=None, binsz=None,
+              cropsz=None, pad_to_128=False):
     """Load dataset as a PIPO map.
 
     TODO: This function skips many of the data parsing routines implemented
@@ -397,6 +398,22 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None, cropsz=None):
                 pipo_iarr[ind_psa, ind_psg] = np.sum(img)
             else:
                 pipo_iarr[:, :, ind_psa, ind_psg] = img
+    if pad_to_128:
+        trg_sz = [128, 128]
+        [num_row, num_col] = pipo_iarr.shape[0:2]
+        if num_row < trg_sz[0] or num_col < trg_sz[1]:
+            print("Padding image to {:d}x{:d} px".format(trg_sz[0], trg_sz[1]))
+
+        pipo_iarr2 = np.ndarray([trg_sz[0], trg_sz[1], num_psa_states, num_psg_states])
+        pipo_iarr2.fill(0)
+
+        row_from = np.max([int((trg_sz[0] - num_row)/2), 0])
+        row_to = row_from + num_row
+        col_from = np.max([int((trg_sz[1] - num_row)/2), 0])
+        col_to = col_from + num_col
+
+        pipo_iarr2[row_from:row_to, col_from:col_to, :, :] = pipo_iarr
+        pipo_iarr = pipo_iarr2
 
     return pipo_iarr
 
