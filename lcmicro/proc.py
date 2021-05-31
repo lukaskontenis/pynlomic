@@ -340,6 +340,19 @@ def proc_img(
 
     return [img, rng, gamma, data]
 
+def bin_arr(arr, new_shape, mode='sum', return_same_type=True):
+    shape = (new_shape[0], arr.shape[0] // new_shape[0],
+             new_shape[1], arr.shape[1] // new_shape[1])
+    if mode == 'sum':
+        arr_out = arr.reshape(shape).sum(-1).sum(1)
+    elif mode == 'mean':
+        arr_out = arr.reshape(shape).mean(-1).mean(1)
+
+    if return_same_type:
+        arr_out = arr_out.astype(arr.dtype)
+
+    return arr_out
+
 
 def load_pipo(file_name=None, chan_ind=None, binsz=None,
               cropsz=None, pad_to_128=False):
@@ -386,6 +399,9 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None,
         pipo_iarr = np.ndarray([num_psa_states, num_psg_states])
     else:
         num_row, num_col = np.shape(data)[0:2]
+        if binsz is not None:
+            num_row = int(num_row/binsz)
+            num_col = int(num_col/binsz)
         if cropsz:
             num_row = cropsz[1] - cropsz[0]
             num_col = cropsz[3] - cropsz[2]
@@ -402,10 +418,14 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None,
             img = data[:, :, frame_ind]
             if cropsz:
                 img = img[cropsz[0]:cropsz[1], cropsz[2]:cropsz[3]]
-            if binsz == 'all':
+
+            if binsz is None:
+                pipo_iarr[:, :, ind_psa, ind_psg] = img
+            elif binsz == 'all':
                 pipo_iarr[ind_psa, ind_psg] = np.sum(img)
             else:
-                pipo_iarr[:, :, ind_psa, ind_psg] = img
+                pipo_iarr[:, :, ind_psa, ind_psg] = bin_arr(img, (num_row,num_col))
+
     if pad_to_128:
         trg_sz = [128, 128]
         [num_row, num_col] = pipo_iarr.shape[0:2]
