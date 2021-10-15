@@ -214,7 +214,8 @@ def get_scan_artefact_sz(file_name=None, config=None, **kwargs):
             [40],
             [21])]
     else:
-        print("Unknown microscope. Cannot retrieve scan artifact size.")
+        if verbosity == 'warn':
+            print("Unknown microscope. Cannot retrieve scan artifact size.")
         return None
 
     # The scan flyback artefact depends on several factors, mostly on the scan

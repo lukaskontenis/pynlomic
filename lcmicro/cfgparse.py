@@ -413,7 +413,8 @@ def get_scan_field_calib_corr(config, **kwargs):
                   "using 0.785x correction factor.")
         return 0.785
     else:
-        print("Cannot determine whether scan field calibration is valid. Assuming it is.")
+        if verbosity is 'warn':
+            print("Cannot determine whether scan field calibration is valid. Assuming it is.")
 
     return 1.0
 
