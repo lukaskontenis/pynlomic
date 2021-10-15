@@ -887,7 +887,11 @@ def get_opt_map_rng(img=None, file_name=None, **kwargs):
     printmsg("Determining optimal mapping range...", 'info', vlvl)
     rng = get_frac_sat_rng(img)
 
-    printmsg("Mapping range: [{:d} , {:d}]".format(rng[0], rng[1]),
+    if isinstance(rng[0], int):
+        printmsg("Mapping range: [{:d} , {:d}]".format(rng[0], rng[1]),
+             'info', vlvl)
+    else:
+        printmsg("Mapping range: [{:.2f} , {:2f}]".format(rng[0], rng[1]),
              'info', vlvl)
     return rng
 
