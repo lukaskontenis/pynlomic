@@ -1,3 +1,19 @@
+v0.5.5
+- Improved PIPONATOR support, option to pad data to 128, clear (0,0) pixel
+    artifact
+- PIPO fitting overhaul, added AG C6 PIPO fitting formula, added automatic fit
+    accelerator generation and fast guess value estimation via fit accelerator,
+    added a FitStruct class for better fit data handling
+- PIPO data now reported with angle axes instead of state IDs
+- NSMP fitting performance improvements
+- Major axis changed to X in NSMP MS contraction. This seems to be needed to
+    match lcmicro output to PIPONATOR
+- Added a new nonlinear polarimetry validation test
+- Added Mueller matrices for polarization rotator, Fresnel transmission and
+    reflection
+- A typo that was letting all tensor tests to succeed
+- Removed hardcoded PIPO_6x6 state set assumption in verification
+
 v0.5.4
 - Swapped PSG/PSA fixed in PIPONATOR TIFF exporting
 - Option to swap PSG/PSA channels added
