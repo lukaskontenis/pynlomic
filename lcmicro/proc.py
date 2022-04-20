@@ -473,7 +473,7 @@ def convert_pipo_to_tiff(
         file_name=None, pipo_arr=None, preset='basic',
         out_sz=None,
         duplicate_first_and_last_state=False, add_dummy_ref_states=False,
-        reverse_psg_axis=False, sanity_check=False,
+        reverse_psg_axis=False, sanity_check=False, test_crop=False,
         **kwargs):
     """Convert a PIPO dataset to 16-bit multipage TIFF.
 
@@ -663,6 +663,17 @@ def convert_pipo_to_tiff(
 
     print("Output dataset size: {:d}x{:d}p px, {:d} interleaved states".format(
         out_row, out_col, np.shape(pipo_arr_out)[0]))
+
+    if test_crop:
+        mask = np.ndarray([out_row, out_col])
+        mask.fill(0)
+        from_row = int(np.floor(out_row/2 - out_row/10))
+        to_row = int(np.ceil(out_row/2 + out_row/10))
+        from_col = int(np.floor(out_col/2 - out_col/10))
+        to_col = int(np.ceil(out_col/2 + out_col/10))
+        print("Test cropping enabled. The output data will be nulled everywhere except a central {:d}x{:d} area.".format(to_col - from_col, to_row - from_row))
+        mask[from_row:to_row, from_col:to_col] = 1
+        pipo_arr_out *= mask
 
     if sanity_check:
         # Perform a sanity check by undoing all data formatting steps and
