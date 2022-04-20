@@ -53,6 +53,7 @@ class DataType(Enum):
     TimeLapse = 3
     ZStack = 4
     Tiling = 5
+    PIPO = 6
 
 
 class PixelCountLimit():

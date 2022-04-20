@@ -626,6 +626,8 @@ def get_data_type(config=None, file_name=None):
         return DataType.Tiling
     if scan_type.lower().find("average") != -1:
         return DataType.Average
+    if scan_type.lower().find("pipo") != -1:
+        return DataType.PIPO
     else:
         num = get_data_store_idx_len(config)
 

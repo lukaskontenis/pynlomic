@@ -307,37 +307,54 @@ def proc_img(
         gamma = 1
 
     data_type = get_data_type(config=config)
-    if data_type in [
-            DataType.SingleImage, DataType.Average, DataType.TimeLapse]:
-        if data_type == DataType.SingleImage:
-            img = data[:, :, ch]
+    if data_type not in [
+            DataType.SingleImage, DataType.Average, DataType.TimeLapse,
+            DataType.PIPO]:
+        print("Data with type " + data_type + " is not supported")
+        return None
+    if data_type == DataType.SingleImage:
+        img = data[:, :, ch]
 
-        if data_type in [DataType.Average, DataType.TimeLapse]:
-            img = get_chan_sum(data=data, config=config, chan=ch)
+    if data_type == DataType.PIPO:
+        print("WARNING: PIPO data detcted, which is currently not fully "
+              "supported by lcmicro, and not supported at all in proc_img. For"
+              " now the strongest channel will be used.")
+        num_img = data.shape[2]
+        ch_inds = np.arange(ch, num_img, 4)
+        ch_sum_arr = np.sum(np.sum(data[:,:, ch_inds], 0), 0)
+        print("Number of images in dataset: {:d}".format(num_img))
+        print("Estimated number of polarimetric channels: {:d}".format(np.round(num_img/4).astype(int)))
+        print("Total counts in weakest channel: {:.2f}M".format(ch_sum_arr.min()*1E-6))
+        print("Total counts in strongest channel: {:.2f}M".format(ch_sum_arr.max()*1E-6))
 
-        # Convert image to volts for analog channels
-        # Assuming channel range is +-10V, no offset and 16bits
-        if ch in (0, 1):
-            img = (img.astype('float')/2**16 - 0.5)*20
+        img = data[:, :, ch_inds[np.argmax(ch_sum_arr)]]
 
-        if crop_artefacts:
-            if verbosity == 'info':
-                print("Cropping scan artefacts...")
-            img = crop_scan_artefacts(img, config, **kwargs)
-        else:
-            if verbosity == 'info':
-                print("Scan artefact cropping disabled")
+    if data_type in [DataType.Average, DataType.TimeLapse]:
+        img = get_chan_sum(data=data, config=config, chan=ch)
 
-        if corr_fi:
-            if verbosity == 'info':
-                print("Correcting field illumination...")
-            img = corr_field_illum(img, facpwr=get_nl_ord(config, ch))
-        else:
-            if verbosity == 'info':
-                print("Field illumination correction disabled")
+    # Convert image to volts for analog channels
+    # Assuming channel range is +-10V, no offset and 16bits
+    if ch in (0, 1):
+        img = (img.astype('float')/2**16 - 0.5)*20
 
-        if isnone(rng):
-            rng = get_opt_map_rng(img=img, file_name=file_name, **kwargs)
+    if crop_artefacts:
+        if verbosity == 'info':
+            print("Cropping scan artefacts...")
+        img = crop_scan_artefacts(img, config, **kwargs)
+    else:
+        if verbosity == 'info':
+            print("Scan artefact cropping disabled")
+
+    if corr_fi:
+        if verbosity == 'info':
+            print("Correcting field illumination...")
+        img = corr_field_illum(img, facpwr=get_nl_ord(config, ch))
+    else:
+        if verbosity == 'info':
+            print("Field illumination correction disabled")
+
+    if isnone(rng):
+        rng = get_opt_map_rng(img=img, file_name=file_name, **kwargs)
 
     return [img, rng, gamma, data]
 
@@ -909,7 +926,7 @@ def make_image(
 
     data_type = get_data_type(config=config)
     if data_type in (DataType.SingleImage, DataType.Average,
-                     DataType.TimeLapse):
+                     DataType.TimeLapse, DataType.PIPO):
         img_raw = img
 
         if cmap_sat:
