@@ -464,9 +464,9 @@ def gen_img_report(
     if do_export_figure:
         print("Exporting report...")
         if composite:
-            export_figure(file_name[0], suffix=fig_suffix + "comb")
+            export_figure(file_name[0], suffix=fig_suffix + "comb", resize=True)
         else:
-            export_figure(file_name, suffix=fig_suffix)
+            export_figure(file_name, suffix=fig_suffix, resize=True)
 
     print("All done\n")
 
