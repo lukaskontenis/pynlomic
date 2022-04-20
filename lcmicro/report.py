@@ -857,10 +857,10 @@ def calib_laser_power(file_name=None, trim_pts=2):
 
     plt.plot(M, P*1000, marker='.', c=get_color('db'))
 
-    A_g = 0.06
-    T_g = 3700
-    x0_g = 12000
-    y0_g = 0.06
+    A_g = np.max(P)/2
+    T_g =  np.abs(M[np.argmax(P)] - M[np.argmin(P)])/4
+    x0_g = M[np.argmax(P)]
+    y0_g = np.min(P) + A_g
 
     P_g = pol_attn_func(M, A_g, T_g, x0_g, y0_g)
     plt.plot(M, P_g*1000, c=get_color('dg'))
