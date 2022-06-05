@@ -45,17 +45,17 @@ def get_img(**kwargs):
 
 def export_chans(config=None, data=None, ch_id=None, rng=None):
     """Export channels."""
-    if isnone(config):
+    if config is None:
         raise Exception("NoConfig")
 
-    if isnone(ch_id):
+    if ch_id is None:
         ch_id = get_def_chan_idx(config)
 
     idx_arr = get_idx_mask(config, ch_id)
     sat_thr = get_px_cnt_limit(config)
     bgr_lvl = get_px_bckgr_count(config)
 
-    if isnone(rng):
+    if rng is None:
         rng = [0, sat_thr]
 
     for ind in enumerate(idx_arr):
@@ -116,10 +116,10 @@ def estimate_spot_sz(wavl=1.028, NA=0.75, n=1):
 
 def print_cnt_lin_info(cnt, dwell_t=None, frep=None):
     """Print counting linearity and correction info."""
-    if isnone(dwell_t):
+    if dwell_t is None:
         print("Assuming 1 s dwell time")
         dwell_t = 1
-    if isnone(frep):
+    if frep is None:
         print("Assuming 75 MHz repetition rate")
         frep = 75e6
 
@@ -160,7 +160,7 @@ def get_scan_artefact_sz(file_name=None, config=None, **kwargs):
     """
     verbosity = kwargs.get('verbosity')
 
-    if isnone(config):
+    if config is None:
         config = read_cfg(file_name)
 
     field_sz_um = get_scan_field_size(config)
@@ -353,10 +353,11 @@ def proc_img(
         if verbosity == 'info':
             print("Field illumination correction disabled")
 
-    if isnone(rng):
+    if rng is None:
         rng = get_opt_map_rng(img=img, file_name=file_name, **kwargs)
 
     return [img, rng, gamma, data]
+
 
 def bin_arr(arr, new_shape, mode='sum', return_same_type=True):
     shape = (new_shape[0], arr.shape[0] // new_shape[0],
@@ -846,7 +847,7 @@ def convert_nsmp_to_tiff(
 def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True,
                     rng=None):
     """Arrange images into a mosaic with given coordinates and padding."""
-    if isnone(rng):
+    if rng is None:
         rng = [0, 20]
     [nr, nc, _] = data.shape
     pad_px = np.int32(np.round(max([nr, nc])*pad))
@@ -882,7 +883,7 @@ def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True,
 def get_opt_map_rng(img=None, file_name=None, **kwargs):
     """Get optimal mapping range for an image."""
     vlvl = kwargs.get('verbosity')
-    if isnone(file_name):
+    if file_name is None:
         print("Dataset file name has to be provided")
         return None
 
@@ -907,7 +908,7 @@ def get_opt_map_rng(img=None, file_name=None, **kwargs):
 
         # TODO: This should be done by make_mosaic_img
         # print("Crating dummy mosaic...")
-        # if isnone(data) or isnone(mask) or isnone(ij):
+        # if data is None or mask is None or ij is None:
         #     [data, mask, ij] = get_tiling_data(
         #         data=data, file_name=file_name)
         # img = make_mosaic_img(data, mask, ij, remap=False)
@@ -929,7 +930,7 @@ def make_image(
         cmap_sat=False, map_scale='lin', **kwargs):
     """Make an image for display."""
     vlvl = kwargs.get('verbosity')
-    if isnone(img):
+    if img is None:
         [img, rng, gamma, data] = proc_img(
             file_name=file_name, rng=rng, gamma=gamma, **kwargs)
 
@@ -948,7 +949,7 @@ def make_image(
         [img, rng] = remap_img(img, rng=rng, gamma=gamma, cap=map_cap)
         img_scaled = img
 
-        if isnone(cmap):
+        if cmap is None:
             cmap = get_def_chan_cmap(config)
 
         if map_scale == 'log':
@@ -974,7 +975,7 @@ def make_image(
         else:
             print("Unknown data type" + str(data_type))
 
-        if isnone(data):
+        if data is None:
             data = read_bin_file(file_name)
 
         show_mosaic(data, file_name, mos_type=mos_type)
@@ -1087,7 +1088,7 @@ def make_composite_img(file_names, method="CombineToRGB", ofs=None, chas=None,
                 rng = []
                 gamma = []
 
-            if not isnone(chas):
+            if chas:
                 ch_ind = chas[ind]
             else:
                 ch_ind = ind
@@ -1149,7 +1150,7 @@ def export_zstack_images(file_name, rng=None, chan_id=3):
     mask = get_idx_mask(config, chan_id)
     print("Found {:d} images with channel id {:d}".format(len(mask), chan_id))
 
-    if isnone(rng):
+    if rng is None:
         print("Mapping range not specified, setting to [0, max_value/10]")
         vmin = 0
         vmax = 1
