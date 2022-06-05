@@ -374,7 +374,7 @@ def bin_arr(arr, new_shape, mode='sum', return_same_type=True):
 
 
 def load_pipo(file_name=None, chan_ind=None, binsz=None,
-              cropsz=None, pad_to_128=False):
+              cropsz=None, pad_to_128=False, resample_to_sz=None, **kwargs):
     """Load dataset as a PIPO map.
 
     TODO: This function skips many of the data parsing routines implemented
@@ -466,13 +466,23 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None,
         pipo_iarr2[row_from:row_to, col_from:col_to, :, :] = pipo_iarr
         pipo_iarr = pipo_iarr2
 
+    if resample_to_sz:
+        print("Resampling PIPO data from ({:d}, {:d}) to ({:d}, {:d})".format(num_row, num_col, resample_to_sz[0], resample_to_sz[1]))
+        resample_fac = np.min([resample_to_sz[0]/num_row, resample_to_sz[1]/num_col])
+        pipo_out = np.ndarray([resample_to_sz[0], resample_to_sz[1], num_psa_states, num_psg_states])
+        for ind_psg in range(num_psg_states):
+            for ind_psa in range(num_psa_states):
+                pipo_out[:, :, ind_psa, ind_psg] = ndimg.zoom(
+                    pipo_iarr[:, :, ind_psg, ind_psa], resample_fac)
+
+        pipo_iarr = pipo_out
+
     return pipo_iarr
 
 
 def convert_pipo_to_tiff_piponator(**kwargs):
     """Convert a PIPO dataset to a PIPONATOR TIFF."""
     return convert_pipo_to_tiff(**kwargs, preset='piponator')
-
 
 def convert_pipo_to_tiff(
         file_name=None, pipo_arr=None, preset='basic',
