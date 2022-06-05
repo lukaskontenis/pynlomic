@@ -382,68 +382,72 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None,
 
     If binsz == 'all', the images in the dataset are summed to a single pixel.
     """
-    config = read_cfg(file_name)
-    chan_ind = parse_chan_idx(config, chan_ind)
-
-    print("Channel index: {:d}".format(chan_ind))
-
-    print("Reading '{:s}'...".format(file_name), end='', flush=True)
-    data = read_bin_file(file_name)
-    print('OK', flush=True)
-
-    num_chan = 4
-    num_img = int(data.shape[2]/num_chan)
-    if num_img == 65:
-        data = data[:, :, :-4]
-        num_img = int(data.shape[2]/num_chan)
-        print("There are 65 images in the dataset, assuming this is 8x8 PIPO "
-              "with an extra garbage state.")
-
-    num_psg_states = num_psa_states = np.sqrt(num_img)
-    if num_psg_states - int(num_psg_states) != 0:
-        print("There are {:d} images in the dataset, ".format(num_img) +
-              "which does not correspond to any NxN PIPO sequence")
-
-    # Galvo-scanning flyback results in count pileup and signal distortion in
-    # the (0, 0) pixel. It could be set to zero, but in some cases the
-    # background might be legitimately nonzero and the analog input channel zero
-    # signal is not at zero value. Set the (0, 0) pixel value to the mean of its
-    # three adjacent pixels.
-    print("Replacing (0, 0) pixel values")
-    data[0, 0, :] = (data[0, 1, :] + data[1, 1, :] + data[1, 0, :]/3).astype('int')
-
-    num_psg_states = int(num_psg_states)
-    num_psa_states = int(num_psa_states)
-    if binsz == 'all':
-        pipo_iarr = np.ndarray([num_psa_states, num_psg_states])
+    if Path(file_name).suffix == '.npy':
+        pipo_iarr = np.load(file_name)
+        [num_row, num_col, num_psa_states, num_psg_states] = pipo_iarr.shape
     else:
-        num_row, num_col = np.shape(data)[0:2]
-        if binsz is not None:
-            num_row = int(num_row/binsz)
-            num_col = int(num_col/binsz)
-        if cropsz:
-            num_row = cropsz[1] - cropsz[0]
-            num_col = cropsz[3] - cropsz[2]
-        pipo_iarr = np.ndarray(
-            [num_row, num_col, num_psa_states, num_psg_states])
+        config = read_cfg(file_name)
+        chan_ind = parse_chan_idx(config, chan_ind)
 
-    if cropsz:
-        print("Cropping image to " + str(cropsz) + " px")
+        print("Channel index: {:d}".format(chan_ind))
 
-    print("Assuming PSA-first order")
-    for ind_psg in range(num_psg_states):
-        for ind_psa in range(num_psa_states):
-            frame_ind = (ind_psa + ind_psg*num_psa_states)*num_chan + chan_ind
-            img = data[:, :, frame_ind]
+        print("Reading '{:s}'...".format(file_name), end='', flush=True)
+        data = read_bin_file(file_name)
+        print('OK', flush=True)
+
+        num_chan = 4
+        num_img = int(data.shape[2]/num_chan)
+        if num_img == 65:
+            data = data[:, :, :-4]
+            num_img = int(data.shape[2]/num_chan)
+            print("There are 65 images in the dataset, assuming this is 8x8 PIPO "
+                "with an extra garbage state.")
+
+        num_psg_states = num_psa_states = np.sqrt(num_img)
+        if num_psg_states - int(num_psg_states) != 0:
+            print("There are {:d} images in the dataset, ".format(num_img) +
+                "which does not correspond to any NxN PIPO sequence")
+
+        # Galvo-scanning flyback results in count pileup and signal distortion in
+        # the (0, 0) pixel. It could be set to zero, but in some cases the
+        # background might be legitimately nonzero and the analog input channel zero
+        # signal is not at zero value. Set the (0, 0) pixel value to the mean of its
+        # three adjacent pixels.
+        print("Replacing (0, 0) pixel values")
+        data[0, 0, :] = (data[0, 1, :] + data[1, 1, :] + data[1, 0, :]/3).astype('int')
+
+        num_psg_states = int(num_psg_states)
+        num_psa_states = int(num_psa_states)
+        if binsz == 'all':
+            pipo_iarr = np.ndarray([num_psa_states, num_psg_states])
+        else:
+            num_row, num_col = np.shape(data)[0:2]
+            if binsz is not None:
+                num_row = int(num_row/binsz)
+                num_col = int(num_col/binsz)
             if cropsz:
-                img = img[cropsz[0]:cropsz[1], cropsz[2]:cropsz[3]]
+                num_row = cropsz[1] - cropsz[0]
+                num_col = cropsz[3] - cropsz[2]
+            pipo_iarr = np.ndarray(
+                [num_row, num_col, num_psa_states, num_psg_states])
 
-            if binsz is None:
-                pipo_iarr[:, :, ind_psa, ind_psg] = img
-            elif binsz == 'all':
-                pipo_iarr[ind_psa, ind_psg] = np.sum(img)
-            else:
-                pipo_iarr[:, :, ind_psa, ind_psg] = bin_arr(img, (num_row,num_col))
+        if cropsz:
+            print("Cropping image to " + str(cropsz) + " px")
+
+        print("Assuming PSA-first order")
+        for ind_psg in range(num_psg_states):
+            for ind_psa in range(num_psa_states):
+                frame_ind = (ind_psa + ind_psg*num_psa_states)*num_chan + chan_ind
+                img = data[:, :, frame_ind]
+                if cropsz:
+                    img = img[cropsz[0]:cropsz[1], cropsz[2]:cropsz[3]]
+
+                if binsz is None:
+                    pipo_iarr[:, :, ind_psa, ind_psg] = img
+                elif binsz == 'all':
+                    pipo_iarr[ind_psa, ind_psg] = np.sum(img)
+                else:
+                    pipo_iarr[:, :, ind_psa, ind_psg] = bin_arr(img, (num_row,num_col))
 
     if pad_to_128:
         trg_sz = [128, 128]
