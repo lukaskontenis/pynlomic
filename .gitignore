@@ -1,6 +1,6 @@
 build/
 pynolmic/__pycache__/
-lcmicro.egg-info/
+pynolmic.egg-info/
 dist/
 docs/
 examples/
