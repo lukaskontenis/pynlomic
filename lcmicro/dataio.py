@@ -7,6 +7,9 @@ Copyright 2015-2021 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 import os
+import zipfile
+from pathlib import Path
+
 from lklib.fileread import list_files_with_extension
 
 
@@ -17,6 +20,7 @@ def get_microscopy_data_file_name(file_name=None):
     one in the current directory. It does that by listing .dat files in the
     current directory while skipping the PolStates.dat file.
     """
+
     file_names = list_files_with_extension(ext='dat')
 
     # Remove PolStates.dat files
@@ -25,6 +29,16 @@ def get_microscopy_data_file_name(file_name=None):
         if os.path.basename(file_name) != 'PolStates.dat':
             file_names2.append(file_name)
     file_names = file_names2
+
+    if len(file_names) == 0:
+        zip_files = list_files_with_extension(ext='zip')
+
+        for zip_file in zip_files:
+            zipf = zipfile.ZipFile(zip_file)
+            zip_contents = zipf.namelist()
+            if len([name for name in zip_contents if Path(name).suffix=='.dat']) > 0 \
+                    and len([name for name in zip_contents if Path(name).suffix=='.ini']) > 0:
+                file_names.append(zip_file)
 
     if len(file_names) == 0:
         print("No data files found")
