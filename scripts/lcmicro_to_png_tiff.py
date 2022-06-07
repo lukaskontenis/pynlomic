@@ -2,8 +2,7 @@
 
 Convert a raw microscope data file to PNG/TIFF.
 
-This script is part of lcmicro, a Python library for nonlinear microscopy and
-polarimetry.
+This script is part of pynolmic, a Python library for nonlinear microscopy.
 
 Copyright 2015-2021 Lukas Kontenis
 Contact: dse.ssd@gmail.com
@@ -13,8 +12,11 @@ Contact: dse.ssd@gmail.com
 
 import sys
 import os
-from lcmicro.report import export_img_png_tiff
+
 from lkcom.util import handle_general_exception
+
+from pynolmic.report import export_img_png_tiff
+
 
 print("=== Microscope data to PNG TIFF converter ===")
 

@@ -1,7 +1,6 @@
 """Convert a TIFF image to PNG.
 
-This script is part of lcmicro, a Python library for nonlinear microscopy and
-polarimetry.
+This script is part of pynolmic, a Python library for nonlinear microscopy.
 
 Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com

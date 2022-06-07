@@ -2,10 +2,9 @@
 
 Convert a PIPO dataset to a multipage TIFF file for PIPONATOR.
 
-This script is part of lcmicro, a Python library for nonlinear microscopy and
-polarimetry.
+This script is part of pynolmic, a Python library for nonlinear microscopy.
 
-Copyright 2015-2021 Lukas Kontenis
+Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 # flake8: noqa
@@ -16,8 +15,8 @@ import os
 
 from lkcom.util import handle_general_exception
 
-from lcmicro.proc import convert_pipo_to_tiff_piponator
-from lcmicro.dataio import get_microscopy_data_file_name
+from pynolmic.proc import convert_pipo_to_tiff_piponator
+from pynolmic.dataio import get_microscopy_data_file_name
 
 print("=== PIPONATOR TIFF converter ===", flush=True)
 

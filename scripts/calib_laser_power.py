@@ -3,8 +3,7 @@
 Calculates calibrtion parameters for a rotating-waveplate laser power
 attenuator.
 
-This script is part of lcmicro, a Python library for nonlinear microscopy and
-polarimetry.
+This script is part of pynolmic, a Python library for nonlinear microscopy.
 
 Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
@@ -14,11 +13,11 @@ Contact: dse.ssd@gmail.com
 
 file_name = r"2022-04-20 - FF calib.txt"
 
-print("=== lcmicro ===")
+print("=== pynolmic ===")
 print("Running laser power calibration script...")
 
 from lkcom.util import handle_general_exception
-from lcmicro.report import calib_laser_power
+from pynolmic.report import calib_laser_power
 
 try:
     calib_laser_power(file_name)

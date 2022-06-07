@@ -1,6 +1,5 @@
 build/
-lcmicro/__pycache__/
-lcmicro/*/__pycache__/
+pynolmic/__pycache__/
 lcmicro.egg-info/
 dist/
 docs/
@@ -10,9 +9,4 @@ examples/
 Design notes.txt
 todo.txt
 *.vscode/
-scripts/PolStates.dat
-*accel*.npy
-*accel*.zip
-fitdata.npy
 test_data/
-scripts/PolStates*.dat

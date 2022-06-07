@@ -1,7 +1,6 @@
-"""Microscopy data input/output functions.
+"""pynolmic - a Python library for nonlinear microscopy.
 
-This module is part of lcmicro, a Python library for nonlinear microscopy and
-polarimetry.
+Microscopy data input/output functions.
 
 Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com

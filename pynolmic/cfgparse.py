@@ -1,5 +1,5 @@
 
-"""lcmicro - a Python library for nonlinear microscopy and polarimetry.
+"""pynolmic - a Python library for nonlinear microscopy.
 
 This module contains routines to parse microscopy data metainformation and
 configuration files.
@@ -16,7 +16,7 @@ from lkcom.string import timestamp_str_to_seconds, make_human_time_str,\
     find_str_in_list
 from lkcom.cfgparse import read_cfg, get_cfg_section, get_head_val
 
-from lcmicro.common import DetectorType, PixelCountLimit, DataType, \
+from pynolmic.common import DetectorType, PixelCountLimit, DataType, \
      get_data_type_str
 
 

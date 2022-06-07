@@ -1,5 +1,5 @@
 
-"""lcmicro - a Python library for nonlinear microscopy and polarimetry.
+"""pynolmic - a Python library for nonlinear microscopy.
 
 This module contains common enums and routines.
 
