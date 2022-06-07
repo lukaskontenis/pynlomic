@@ -1,0 +1,5 @@
+v0.9.1
+- Fixing dependencies based on actual installed packages
+
+v0.9.0
+- Initial commit
