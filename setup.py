@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pynolmic",
-    version="0.9.1",
+    version="0.9.2",
     author="Lukas Kontenis",
     author_email="dse.ssd@gmail.com",
     description="A Python library for nonlinear microscopy.",
@@ -30,5 +30,7 @@ setuptools.setup(
         'scripts/lcmicro_to_png_tiff.py',
         'scripts/make_pipo_tiff_piponator.py',
         'scripts/make_psf_figure.py',
-        'scripts/tiff_to_png.py'])],
+        'scripts/tiff_to_png.py']),
+        ('test_data', [
+        'test_data/RTT v1_4 PIPO - 11_51_23_.221_.dat.zip'])],
 )
