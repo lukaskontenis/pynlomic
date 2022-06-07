@@ -264,6 +264,40 @@ def crop_scan_artefacts(img, config, **kwargs):
     return img
 
 
+def corr_field_illum(img, pc=None, pr=None, facpwr=1):
+    """Correct field illumination."""
+    # Some default polynomial correction coefficients that are only valid for
+    # LCM1-type microscopes at LC and FF and using the Nikon Plan Apo Lambda/VC
+    # 20x objectives.
+    pc_cal = [-1.20886240e-15,  4.72970928e-12, -5.42632285e-09,
+              1.09197885e-06, 6.64019152e-04,  7.95885145e-01]
+
+    pr_cal = [-3.14535927e-15,  6.66698594e-12, -4.37113876e-09,
+              -1.80983989e-07, 1.27710744e-03,  6.16538937e-01]
+
+    if pc is None:
+        pc = pc_cal
+
+    if pr is None:
+        pr = pr_cal
+
+    r_fac = np.ndarray(img.shape[0])
+    for i in range(0, img.shape[0]):
+        r_fac[i] = np.polyval(pr, i)
+
+    c_fac = np.ndarray(img.shape[1])
+    for j in range(0, img.shape[1]):
+        c_fac[j] = np.polyval(pc, j)
+
+    img2 = np.empty_like(img)
+
+    for i in range(0, img.shape[0]):
+        for j in range(0, img.shape[1]):
+            img2[i, j] = img[i, j] / (r_fac[i] * c_fac[j])**facpwr
+
+    return img2
+
+
 def get_sat_mask(img, config):
     """Get a mask showing saturated pixels in an image."""
     px_t = get_px_time(config)
