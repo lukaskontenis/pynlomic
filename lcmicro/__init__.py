@@ -12,5 +12,3 @@ Contact: dse.ssd@gmail.com
 # flake8: noqa
 
 from lcmicro.dataio import *
-
-from lcmicro import polarimetry
