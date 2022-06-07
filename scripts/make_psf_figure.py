@@ -8,7 +8,7 @@ plotting by setting show_y_zero_marker to False.
 This script is part of lcmicro, a Python library for nonlinear microscopy and
 polarimetry.
 
-Copyright 2015-2021 Lukas Kontenis
+Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 # flake8: noqa
@@ -18,7 +18,7 @@ import sys
 import os
 import pathlib
 
-from lklib.util import handle_general_exception
+from lkcom.util import handle_general_exception
 
 from lcmicro.report import gen_thg_psf_fig
 from lcmicro.dataio import get_psf_data_file_name

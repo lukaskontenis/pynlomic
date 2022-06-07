@@ -16,7 +16,7 @@ range count data, especially for harmonic-generation microscopy images.
 This script is part of lcmicro, a Python library for nonlinear microscopy and
 polarimetry.
 
-Copyright 2015-2020 Lukas Kontenis
+Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 # flake8: noqa
@@ -24,7 +24,7 @@ Contact: dse.ssd@gmail.com
 
 import sys
 from lcmicro.dataio import get_microscopy_data_file_name
-from lklib.util import handle_general_exception
+from lkcom.util import handle_general_exception
 from lcmicro.report import gen_img_report
 
 print("=== lcmicro ===")

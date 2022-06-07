@@ -14,7 +14,7 @@ Contact: dse.ssd@gmail.com
 import sys
 import os
 from lcmicro.report import export_img_png_tiff
-from lklib.util import handle_general_exception
+from lkcom.util import handle_general_exception
 
 print("=== Microscope data to PNG TIFF converter ===")
 

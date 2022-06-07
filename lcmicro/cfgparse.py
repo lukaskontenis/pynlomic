@@ -4,17 +4,17 @@
 This module contains routines to parse microscopy data metainformation and
 configuration files.
 
-Copyright 2015-2020 Lukas Kontenis
+Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 from datetime import datetime
 
 import numpy as np
 
-from lklib.util import isnone, isarray
-from lklib.string import timestamp_str_to_seconds, make_human_time_str,\
+from lkcom.util import isnone, isarray
+from lkcom.string import timestamp_str_to_seconds, make_human_time_str,\
     find_str_in_list
-from lklib.cfgparse import read_cfg, get_cfg_section, get_head_val
+from lkcom.cfgparse import read_cfg, get_cfg_section, get_head_val
 
 from lcmicro.common import DetectorType, PixelCountLimit, DataType, \
      get_data_type_str

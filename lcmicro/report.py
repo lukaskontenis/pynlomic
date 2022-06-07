@@ -18,32 +18,27 @@ import matplotlib.image as mpimg
 from scipy.optimize import curve_fit
 import configparser as cfg
 
-from lklib.util import isnone, isarray, handle_general_exception, get_color, \
-    printmsg
-from lklib.fileread import list_files_with_filter, rem_extension, \
-    change_extension, list_files_with_extension
-from lklib.cfgparse import read_cfg
-from lklib.image import remap_img, show_img, add_scale_bar, get_colourmap, \
-     get_img_sz, save_img
-from lklib.plot import export_figure
-from lklib.trace import trace_set_param, get_pharos_log_trace
-from lklib.report import MakeSVGReport, ConvertSVGToPDF
-from lklib.fit import fit_gaussian_1d
+from lkcom.util import isnone, isarray, handle_general_exception, get_color, \
+    printmsg, get_colourmap
+from lkcom.dataio import list_files_with_extension
+from lkcom.string import rem_extension
+from lkcom.cfgparse import read_cfg
+from lkcom.image import remap_img, show_img, add_scale_bar, save_img
+from lkcom.plot import export_figure
+
+from lkfit.gaussian_fit import fit_gaussian_1d
 
 from lcmicro.common import DataType, DetectorType, CountImageStats, \
     VoltageImageStats
-from lcmicro.proc import make_image, make_composite_img, get_sat_mask, \
-    get_opt_map_rng, proc_img
+from lcmicro.proc import make_image, make_composite_img, get_sat_mask, proc_img
 from lcmicro.cfgparse import get_sample_name, get_chan_name, get_laser_name, \
     get_ex_wavl, get_ex_power, get_def_chan_idx, get_chan_det_type, \
     get_chan_units, get_scan_frame_time, get_px_time, get_scan_field_size, \
     get_tiling_step, get_scan_px_sz, get_scan_date, get_operator_name, \
-    get_sampe_id, get_sample_area_label, validate_chan_idx, get_cfg_range, \
-    get_data_type, print_chan_name, get_microscope_name, \
-    get_scan_field_size_calib_flag, print_data_info
-from lcmicro.tiling import get_tiling_grid_sz, get_tiling_data, \
-    show_raw_tiled_img, tile_images
-from lcmicro.stab import get_stab_traces
+    get_sampe_id, get_sample_area_label, validate_chan_idx, get_data_type, \
+    print_chan_name, print_data_info
+# from lcmicro.tiling import get_tiling_grid_sz, get_tiling_data, \
+#     show_raw_tiled_img, tile_images
 
 
 def make_img_title(config, template="fig", chan=None, print_exw=False,
@@ -174,14 +169,14 @@ def make_caption_str(
         if not isnone(field_sz):
             caption_str = caption_str + str(field_sz) + ' um size'
 
-        tiling_grid_sz = get_tiling_grid_sz(config=config)
-        if not isnone(tiling_grid_sz):
-            caption_str = caption_str + ', {:d}x{:d} grid'.format(
-                tiling_grid_sz[0], tiling_grid_sz[1])
+        # tiling_grid_sz = get_tiling_grid_sz(config=config)
+        # if not isnone(tiling_grid_sz):
+        #     caption_str = caption_str + ', {:d}x{:d} grid'.format(
+        #         tiling_grid_sz[0], tiling_grid_sz[1])
 
-        tiling_step_sz = get_tiling_step(config)
-        if not isnone(tiling_step_sz):
-            caption_str += ', {:.1f} mm step'.format(tiling_step_sz)
+        # tiling_step_sz = get_tiling_step(config)
+        # if not isnone(tiling_step_sz):
+        #     caption_str += ', {:.1f} mm step'.format(tiling_step_sz)
 
         pixel_sz = get_scan_px_sz(config, apply_sz_calib=False)
         if not isnone(pixel_sz):
@@ -495,28 +490,29 @@ def gen_out_imgs(
             print("Could not determine data type")
             raise Exception("InvalidDataType")
 
-        if dtype == DataType.Tiling:
-            # TODO: scan field size calibration is out of date. Fix it.
-            img_sz = get_scan_field_size(config, apply_sz_calib=False)
-            img_sz = [img_sz, img_sz]
+        if False: # dtype == DataType.Tiling:
+            pass
+            # # TODO: scan field size calibration is out of date. Fix it.
+            # img_sz = get_scan_field_size(config, apply_sz_calib=False)
+            # img_sz = [img_sz, img_sz]
 
-            if isnone(step_sz):
-                step_sz = get_tiling_step(config)*1000
-                step_sz = [step_sz, step_sz]
+            # if isnone(step_sz):
+            #     step_sz = get_tiling_step(config)*1000
+            #     step_sz = [step_sz, step_sz]
 
-            [data, mask, ij] = get_tiling_data(file_name=file_name, data=data)
+            # [data, mask, ij] = get_tiling_data(file_name=file_name, data=data)
 
-            # TODO: get range for tiled images
-            # if isnone(rng):
-            #     rng = get_opt_map_rng(data=data, file_name=file_name,
-            #                           mask=mask, ij=ij)
+            # # TODO: get range for tiled images
+            # # if isnone(rng):
+            # #     rng = get_opt_map_rng(data=data, file_name=file_name,
+            # #                           mask=mask, ij=ij)
 
-            print("Making raw tiled image...")
-            show_raw_tiled_img(file_name=file_name, data=data, rng=rng)
+            # print("Making raw tiled image...")
+            # show_raw_tiled_img(file_name=file_name, data=data, rng=rng)
 
-            tile_images(
-                data=data, file_name=file_name, img_sz=img_sz,
-                step_sz=step_sz, rng=rng, rng_override=rng_override)
+            # tile_images(
+            #     data=data, file_name=file_name, img_sz=img_sz,
+            #     step_sz=step_sz, rng=rng, rng_override=rng_override)
         else:
             [img, rng, gamma, data] = proc_img(file_name=file_name)
             if make_detailed_report_fig:

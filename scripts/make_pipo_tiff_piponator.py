@@ -14,8 +14,7 @@ Contact: dse.ssd@gmail.com
 import sys
 import os
 
-from lklib.fileread import list_files_with_extension
-from lklib.util import handle_general_exception
+from lkcom.util import handle_general_exception
 
 from lcmicro.proc import convert_pipo_to_tiff_piponator
 from lcmicro.dataio import get_microscopy_data_file_name

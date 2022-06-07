@@ -3,14 +3,14 @@
 This module is part of lcmicro, a Python library for nonlinear microscopy and
 polarimetry.
 
-Copyright 2015-2021 Lukas Kontenis
+Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 import os
 import zipfile
 from pathlib import Path
 
-from lklib.fileread import list_files_with_extension
+from lkcom.dataio import list_files_with_extension
 
 
 def get_microscopy_data_file_name(file_name=None):
@@ -20,7 +20,6 @@ def get_microscopy_data_file_name(file_name=None):
     one in the current directory. It does that by listing .dat files in the
     current directory while skipping the PolStates.dat file.
     """
-
     file_names = list_files_with_extension(ext='dat')
 
     # Remove PolStates.dat files

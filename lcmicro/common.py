@@ -3,7 +3,7 @@
 
 This module contains common enums and routines.
 
-Copyright 2015-2020 Lukas Kontenis
+Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
 """
 from enum import Enum

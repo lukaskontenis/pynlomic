@@ -10,10 +10,13 @@ import matplotlib.pyplot as plt
 import scipy.ndimage as ndimg
 import tifffile
 
-from lklib.util import isnone, printmsg
-from lklib.fileread import read_bin_file, change_extension
-from lklib.cfgparse import read_cfg
-from lklib.image import crop_rem_rrcc, corr_field_illum, get_frac_sat_rng, \
+from pathlib import Path
+
+from lkcom.util import printmsg
+from lkcom.dataio import read_bin_file
+from lkcom.string import change_extension
+from lkcom.cfgparse import read_cfg
+from lkcom.image import crop_rem_rrcc, get_frac_sat_rng, \
     remap_img, bake_cmap, gen_preview_img
 
 from lcmicro.common import DataType, MosaicType

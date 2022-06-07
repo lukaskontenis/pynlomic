@@ -12,12 +12,12 @@ Contact: dse.ssd@gmail.com
 # flake8: noqa
 # pylint: skip-file
 
-file_name = r"D:\Data\Maintenance\LCM1\Power calib\2020-09-17\calibration_2020_09_17.txt"
+file_name = r"2022-04-20 - FF calib.txt"
 
 print("=== lcmicro ===")
 print("Running laser power calibration script...")
 
-from lklib.util import handle_general_exception
+from lkcom.util import handle_general_exception
 from lcmicro.report import calib_laser_power
 
 try:
