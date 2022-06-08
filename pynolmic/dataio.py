@@ -24,7 +24,7 @@ def get_microscopy_data_file_name(file_name=None):
     # Remove PolStates.dat files
     file_names2 = []
     for file_name in file_names:
-        if os.path.basename(file_name) != 'PolStates.dat':
+        if os.path.basename(file_name).find('PolStates') == -1:
             file_names2.append(file_name)
     file_names = file_names2
 
