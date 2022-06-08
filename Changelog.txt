@@ -1,3 +1,8 @@
+v0.9.3
+- Removing opencv dependecy. TIFF file exporting is done using tifffile
+- Ignoring any file name containing 'PolStates' when looking for microscopy data
+- lkfit dependency bump to v0.1.1
+
 v0.9.2
 - Adding RTT v1_4 PIPO - 11_51_23_.221_.dat.zip data to repo
 
