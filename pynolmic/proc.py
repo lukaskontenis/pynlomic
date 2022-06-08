@@ -315,7 +315,7 @@ def get_sat_mask(img, config):
 
 def proc_img(
         file_name=None, rng=None, gamma=None, ch=2, corr_fi=False,
-        crop_artefacts=True, **kwargs):
+        crop_artefacts=False, **kwargs):
     """Process an image for analysis and display.
 
     Obtain specified mapping range and gamma values, crop scan artefacts and
