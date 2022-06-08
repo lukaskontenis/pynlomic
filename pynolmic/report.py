@@ -9,11 +9,10 @@ import re
 from shutil import copyfile
 import platform
 
-import cv2
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import tifffile
 
 from scipy.optimize import curve_fit
 import configparser as cfg
@@ -254,11 +253,11 @@ def export_img_png_tiff(
     img_file_name = rem_extension(file_name) + chan_name + '.png'
     print("Writing '{:s}'".format(img_file_name))
     img2 = np.round(img[:, :, 0:3]*255).astype('uint8')
-    cv2.imwrite(img_file_name, cv2.cvtColor(img2, cv2.COLOR_BGR2RGB))
+    plt.imsave(img_file_name, img2)
 
     raw_img_file_name = rem_extension(file_name) + chan_name + '.tiff'
     print("Writing '{:s}'".format(raw_img_file_name))
-    cv2.imwrite(raw_img_file_name, raw_img.astype('uint16'))
+    tifffile.imwrite(raw_img_file_name, raw_img.astype('uint16'))
     print("All done")
 
 
