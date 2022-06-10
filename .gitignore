@@ -1,6 +1,6 @@
 build/
-pynolmic/__pycache__/
-pynolmic.egg-info/
+pynlomic/__pycache__/
+pynlomic.egg-info/
 dist/
 docs/
 examples/

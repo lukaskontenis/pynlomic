@@ -5,7 +5,7 @@ Make an axial THG Z PSF figure from a line scan data file.
 If the trace does not reach zero due to background you can disable zero line
 plotting by setting show_y_zero_marker to False.
 
-This script is part of pynolmic, a Python library for nonlinear microscopy.
+This script is part of pynlomic, a Python library for nonlinear microscopy.
 
 Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
@@ -19,8 +19,8 @@ import pathlib
 
 from lkcom.util import handle_general_exception
 
-from pynolmic.report import gen_thg_psf_fig
-from pynolmic.dataio import get_psf_data_file_name
+from pynlomic.report import gen_thg_psf_fig
+from pynlomic.dataio import get_psf_data_file_name
 
 print("=== PSF figure generator ===")
 

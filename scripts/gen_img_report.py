@@ -13,7 +13,7 @@ be present in the same directory as the data file.
 The gamma parameter is useful when generating 8-bit images from high dynamic
 range count data, especially for harmonic-generation microscopy images.
 
-This script is part of pynolmic, a Python library for nonlinear microscopy.
+This script is part of pynlomic, a Python library for nonlinear microscopy.
 
 Copyright 2015-2022 Lukas Kontenis
 Contact: dse.ssd@gmail.com
@@ -24,10 +24,10 @@ Contact: dse.ssd@gmail.com
 import sys
 from lkcom.util import handle_general_exception
 
-from pynolmic.dataio import get_microscopy_data_file_name
-from pynolmic.report import gen_img_report
+from pynlomic.dataio import get_microscopy_data_file_name
+from pynlomic.report import gen_img_report
 
-print("=== pynolmic ===")
+print("=== pynlomic ===")
 print("=== Image report ===")
 
 file_name = None

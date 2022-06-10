@@ -1,4 +1,4 @@
-"""pynolmic - a Python library for nonlinear microscopy.
+"""pynlomic - a Python library for nonlinear microscopy.
 
 This module contains routines to process microscopy data and images.
 
@@ -19,8 +19,8 @@ from lkcom.cfgparse import read_cfg
 from lkcom.image import crop_rem_rrcc, get_frac_sat_rng, \
     remap_img, bake_cmap, gen_preview_img
 
-from pynolmic.common import DataType, MosaicType
-from pynolmic.cfgparse import get_idx_mask, get_scan_field_size, \
+from pynlomic.common import DataType, MosaicType
+from pynlomic.cfgparse import get_idx_mask, get_scan_field_size, \
     get_scan_frame_time, get_scan_px_sz, get_px_time, get_ex_rep_rate, \
     get_cfg_range, get_cfg_gamma, get_data_type, get_nl_ord, \
     get_def_chan_idx, get_px_cnt_limit, get_px_bckgr_count, get_idx_ts_ms, \
@@ -352,7 +352,7 @@ def proc_img(
 
     if data_type == DataType.PIPO:
         print("WARNING: PIPO data detcted, which is currently not fully "
-              "supported by pynolmic, and not supported at all in proc_img. For"
+              "supported by pynlomic, and not supported at all in proc_img. For"
               " now the strongest channel will be used.")
         num_img = data.shape[2]
         ch_inds = np.arange(ch, num_img, 4)

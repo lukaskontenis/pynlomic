@@ -2,7 +2,7 @@
 
 Convert a raw microscope data file to PNG/TIFF.
 
-This script is part of pynolmic, a Python library for nonlinear microscopy.
+This script is part of pynlomic, a Python library for nonlinear microscopy.
 
 Copyright 2015-2021 Lukas Kontenis
 Contact: dse.ssd@gmail.com
@@ -15,7 +15,7 @@ import os
 
 from lkcom.util import handle_general_exception
 
-from pynolmic.report import export_img_png_tiff
+from pynlomic.report import export_img_png_tiff
 
 
 print("=== Microscope data to PNG TIFF converter ===")

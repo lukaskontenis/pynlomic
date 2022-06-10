@@ -1,4 +1,4 @@
-"""pynolmic - a Python library for nonlinear microscopy.
+"""pynlomic - a Python library for nonlinear microscopy.
 
 This module contains routines for report generation.
 
@@ -27,16 +27,16 @@ from lkcom.plot import export_figure
 
 from lkfit.gaussian_fit import fit_gaussian_1d
 
-from pynolmic.common import DataType, DetectorType, CountImageStats, \
+from pynlomic.common import DataType, DetectorType, CountImageStats, \
     VoltageImageStats
-from pynolmic.proc import make_image, make_composite_img, get_sat_mask, proc_img
-from pynolmic.cfgparse import get_sample_name, get_chan_name, get_laser_name, \
+from pynlomic.proc import make_image, make_composite_img, get_sat_mask, proc_img
+from pynlomic.cfgparse import get_sample_name, get_chan_name, get_laser_name, \
     get_ex_wavl, get_ex_power, get_def_chan_idx, get_chan_det_type, \
     get_chan_units, get_scan_frame_time, get_px_time, get_scan_field_size, \
     get_tiling_step, get_scan_px_sz, get_scan_date, get_operator_name, \
     get_sampe_id, get_sample_area_label, validate_chan_idx, get_data_type, \
     print_chan_name, print_data_info
-# from pynolmic.tiling import get_tiling_grid_sz, get_tiling_data, \
+# from pynlomic.tiling import get_tiling_grid_sz, get_tiling_data, \
 #     show_raw_tiled_img, tile_images
 
 

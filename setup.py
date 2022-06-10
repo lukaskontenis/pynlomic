@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pynolmic",
+    name="pynlomic",
     version="0.9.3",
     author="Lukas Kontenis",
     author_email="dse.ssd@gmail.com",

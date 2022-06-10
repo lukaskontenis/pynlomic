@@ -1,4 +1,4 @@
-"""pynolmic - a Python library for nonlinear microscopy.
+"""pynlomic - a Python library for nonlinear microscopy.
 
 Microscopy data input/output functions.
 

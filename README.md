@@ -1,4 +1,4 @@
-=== pynolmic ===
+=== pynlomic ===
 
 A Python library for nonlinear microscopy.
 

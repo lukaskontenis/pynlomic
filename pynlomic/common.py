@@ -1,5 +1,5 @@
 
-"""pynolmic - a Python library for nonlinear microscopy.
+"""pynlomic - a Python library for nonlinear microscopy.
 
 This module contains common enums and routines.
 
