@@ -5,10 +5,11 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pynlomic",
-    version="1.0.0",
+    version="1.0.1",
     author="Lukas Kontenis",
     author_email="dse.ssd@gmail.com",
     description="A Python library for nonlinear microscopy.",
+    url="https://github.com/lukaskontenis/pynlomic",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),

@@ -1,3 +1,7 @@
+v1.0.1
+- Set to main pypi repo instead of test
+- Added github URL
+
 v1.0.0
 - First public release
 - Renaming project to pynlomic
