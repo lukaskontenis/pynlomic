@@ -1,3 +1,7 @@
+v1.0.0
+- First public release
+- Renaming project to pynlomic
+
 v0.9.3
 - Removing opencv dependecy. TIFF file exporting is done using tifffile
 - Ignoring any file name containing 'PolStates' when looking for microscopy data
