@@ -8,6 +8,7 @@ Contact: dse.ssd@gmail.com
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage as ndimg
+from skimage.transform import resize
 import tifffile
 
 from pathlib import Path
@@ -394,16 +395,75 @@ def proc_img(
     return [img, rng, gamma, data]
 
 
-def bin_arr(arr, new_shape, mode='sum', return_same_type=True):
-    shape = (new_shape[0], arr.shape[0] // new_shape[0],
-             new_shape[1], arr.shape[1] // new_shape[1])
-    if mode == 'sum':
-        arr_out = arr.reshape(shape).sum(-1).sum(1)
-    elif mode == 'mean':
-        arr_out = arr.reshape(shape).mean(-1).mean(1)
+def resize_arr(arr, new_shape, mode='sum'):
+    """Resize array into a new shape.
 
-    if return_same_type:
-        arr_out = arr_out.astype(arr.dtype)
+    This function works for both downscaling and upscaling, and with noninteger
+    scaling factors. The function also applies Gaussian smoothing for anti-
+    aliasing. For simple downscaling with integer scaling factors see
+    bin_array().
+
+    Downscaling with Gaussian smoothing produces a more natural image at a
+    lower resolution.
+
+    Turns out it is not straighforward to correctly downsample an image for
+    polarimetric analysis. The skimage.transform.resize function works best,
+    although it does not maintain the correct total intensity after resizing.
+
+    Several other methods were reviewed but did not work.
+
+    scipy.interpolate has a free-form RectBivariateSpline which allows
+    resampling on a free-form grid, which seems to be an overkill when
+    resampling from one pixel grid to another.
+
+        import scipy.interpolate as interp
+        f = interp.RectBivariateSpline(x, y, im, kx=1, ky=1)
+        new_im = f(new_x, new_y)
+
+    scipy.ndimage.zoom only uses nearest-neighbor interpolation when
+    downscaling. The results are blocky and not nice.
+
+        https://github.com/scipy/scipy/issues/19474
+
+    """
+    arr_out = resize(arr, new_shape, anti_aliasing=True)
+
+    # Normalize the resized image so that it contains the same number of
+    # counts.
+    arr_out = np.round(arr_out*arr.sum()/arr_out.sum())
+
+    # Return as the same type
+    arr_out = arr_out.astype(arr.dtype)
+
+    return arr_out
+
+
+def bin_arr(arr, new_shape, mode='sum'):
+    """
+    Bin array into a new shape.
+
+    If the new shape dimensions result is noninteger pixels resize_arr is
+    called instead.
+    """
+    pixel_sz = np.divide(arr.shape, new_shape)
+    if not np.array([val.is_integer() for val in pixel_sz]).all():
+        print("Binning a {:d}x{:d} image to {:d}x{:d} results in noninteger "
+              "pixels, using resize_arr instead".format(
+                  *arr.shape, *new_shape))
+        return resize_arr(arr, new_shape, mode)
+
+    resample_fac = np.min([new_shape[0]/arr.shape[0], new_shape[1]/arr.shape[1]])
+    ndimg.zoom(arr, resample_fac)
+    shape = (new_shape[0], arr.shape[0] // new_shape[0],
+            new_shape[1], arr.shape[1] // new_shape[1])
+
+    if mode == 'sum':
+        arr_out = np.nansum(np.nansum(arr.reshape(shape), -1), 1)
+    elif mode == 'mean':
+        arr_out = np.nanmean(np.nanmean(arr.reshape(shape), -1), 1)
+
+    # Return as the same type
+    arr_out = arr_out.astype(arr.dtype)
 
     return arr_out
 
