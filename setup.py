@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pynlomic",
-    version="1.0.1",
+    version="1.1.0",
     author="Lukas Kontenis",
     author_email="dse.ssd@gmail.com",
     description="A Python library for nonlinear microscopy.",
@@ -15,13 +15,13 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: BSD-3 License",
+        "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
     ],
     install_requires=[
         'numpy>=1.19.5', 'matplotlib>=3.3.3', 'scipy>=1.5.4',
-        'tifffile>=2020.9.3', 'lkfit>=0.1.1',
-        'lkcom>=0.2.0'
+        'tifffile>=2020.9.3', 'lkfit>=0.2.0',
+        'lkcom>=0.4.0'
     ],
     python_requires='>=3.6',
     data_files=[
@@ -29,6 +29,7 @@ setuptools.setup(
         'scripts/calib_laser_power.py',
         'scripts/gen_img_report.py',
         'scripts/lcmicro_to_png_tiff.py',
+        'scripts/parse_custom_pipo_data.py',
         'scripts/make_pipo_tiff_piponator.py',
         'scripts/make_psf_figure.py',
         'scripts/tiff_to_png.py']),
