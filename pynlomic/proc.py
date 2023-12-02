@@ -13,8 +13,13 @@ import tifffile
 
 from pathlib import Path
 
+import json
+
+from PIL import Image
+from scipy.ndimage import shift
+
 from lkcom.util import printmsg
-from lkcom.dataio import read_bin_file
+from lkcom.dataio import read_bin_file, check_file_exists
 from lkcom.string import change_extension
 from lkcom.cfgparse import read_cfg
 from lkcom.image import crop_rem_rrcc, get_frac_sat_rng, \
@@ -550,6 +555,22 @@ def load_pipo(file_name=None, chan_ind=None, binsz=None,
                 else:
                     pipo_iarr[:, :, ind_psa, ind_psg] = bin_arr(img, (num_row,num_col))
 
+    meta_file_name = Path(file_name).stem + '.json'
+    if kwargs.get('apply_state_offsets') and check_file_exists(meta_file_name):
+        # Apply XY offsets due to PSG state swtiching.
+        state_offs = None
+        with open(meta_file_name, 'r') as file:
+            state_offs = json.load(file).get('StateOffsets')
+
+        if state_offs is not None:
+            state_offs = np.array(state_offs)
+            for ind_psg in range(num_psg_states):
+                for ind_psa in range(num_psa_states):
+                    ofs_x, ofs_y = state_offs[ind_psg, ind_psa, :]
+                    pipo_iarr[:, :, ind_psg, ind_psa] = shift(pipo_iarr[:, :, ind_psg, ind_psa], (ofs_y, ofs_x))
+                    pipo_iarr[:, :, ind_psg, ind_psa] -= np.nanmin(pipo_iarr[:, :, ind_psg, ind_psa])
+        else:
+            print("No state file offsets found")
     if pad_to_128:
         trg_sz = [128, 128]
         [num_row, num_col] = pipo_iarr.shape[0:2]
