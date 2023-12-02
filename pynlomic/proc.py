@@ -23,7 +23,7 @@ from lkcom.dataio import read_bin_file, check_file_exists
 from lkcom.string import change_extension
 from lkcom.cfgparse import read_cfg
 from lkcom.image import crop_rem_rrcc, get_frac_sat_rng, \
-    remap_img, bake_cmap, gen_preview_img
+    remap_img, bake_cmap, gen_preview_img, make_gif
 
 from pynlomic.common import DataType, MosaicType
 from pynlomic.cfgparse import get_idx_mask, get_scan_field_size, \
@@ -979,6 +979,143 @@ def convert_nsmp_to_tiff(
     print("Writing '{:s}'".format(tiff_file_name))
     tifffile.imwrite(tiff_file_name, pimg_arr_out)
     print("All done")
+
+
+def make_state_gif(file_name, **kwargs):
+    """Make a GIF animation of PIPO states."""
+    pipo_arr = load_pipo(file_name, **kwargs).astype('uint16')
+    num_row, num_col, num_psg, num_psa = np.shape(pipo_arr)
+
+    # rng = get_frac_sat_rng(np.std(np.std(pipo_arr, 2), 2)/np.mean(np.mean(pipo_arr, 2), 2), frac=0.999)
+    # plt.imsave('shg_std.png', np.std(np.std(pipo_arr, 2), 2)/np.mean(np.mean(pipo_arr, 2), 2), vmin=rng[0], vmax=rng[1])
+
+    crop_rect = None
+    if kwargs.get('use_crop_widget'):
+        import matplotlib.widgets as mwidgets
+
+        fig, ax = plt.subplots()
+
+        plt.imshow(pipo_arr[:, :, 0, 0])
+        # ax.plot([1, 2, 3], [10, 50, 100])
+        def onselect(eclick, erelase):
+            pass
+
+        props = dict(facecolor='blue', alpha=0.5)
+        rect = mwidgets.RectangleSelector(ax, onselect, interactive=True, props=props)
+
+        fig.show()
+        # rect.add_state('square')
+        plt.show()
+        crop_rect = [rect.corners[0][0], rect.corners[1][0], rect.corners[0][2], rect.corners[1][2]]
+
+    pipo_linarr = []
+    labels = []
+    for ind_psg in range(num_psg):
+        for ind_psa in range(num_psa):
+            pipo_linarr.append(pipo_arr[:, :, ind_psg, ind_psa])
+            labels.append("PSG {:d}, PSA {:d}".format(ind_psg, ind_psa))
+    # for ind_psg in range(num_psg):
+    #     ind_psa = 0
+    #     pipo_linarr.append(pipo_arr[:, :, ind_psg, ind_psa])
+    #     labels.append("PSG {:d}, PSA {:d}".format(ind_psg, ind_psa))
+
+    make_gif(
+        pipo_linarr,
+        labels=labels,
+        crop=crop_rect, scale_to_max=True, fps=30)
+
+
+def align_states(file_name, **kwargs):
+    """Align states."""
+    pipo_arr = load_pipo(file_name, **kwargs)
+    num_row, num_col, num_psg, num_psa = np.shape(pipo_arr)
+
+    for ind_psg in range(num_psg):
+        for ind_psa in range(num_psa):
+            pipo_arr[:, :, ind_psg, ind_psa] /= np.max(pipo_arr[:, :, ind_psg, ind_psa])
+
+    fig, ax = plt.subplots()
+    fig.pipo_arr = pipo_arr
+    fig.ind_psg = 0
+    fig.ind_psa = 0
+    fig.num_psg = num_psg
+    fig.num_psa = num_psa
+
+    fig.state_offs = np.ndarray([num_psg, num_psa, 2])
+    fig.state_offs.fill(0)
+
+    def plot_state_comp_img(fig):
+        fig.img_rgb = np.ndarray([num_row, num_col, 3])
+        fig.img_rgb[:, :, 0] = pipo_arr[:, :, 0, 0]
+
+
+        ofs_x, ofs_y = fig.state_offs[fig.ind_psg, fig.ind_psa, :]
+        # fig.img_rgb[:, :, 1] = pipo_arr[ofs_x:, ofs_y:, fig.psg_ind, 0]
+
+        print(ofs_x, ofs_y)
+        # fig.img_rgb[:, :, 1] = Image.fromarray(pipo_arr[:, :, fig.psg_ind, 0]).transform((num_row, num_col), Image.Transform.AFFINE, (1., 0., ofs_x, 0., 1., ofs_y))
+        fig.img_rgb[:, :, 1] = shift(pipo_arr[:, :, fig.ind_psg, fig.ind_psa], (ofs_y, ofs_x))
+
+        plt.imshow(fig.img_rgb)
+
+        plt.title("PSG: {:d}, PSA: {:d}, Offset: ({:.2f}, {:.2f})".format(fig.ind_psg, fig.ind_psa, *fig.state_offs[fig.ind_psa, fig.ind_psa, :]))
+
+    plot_state_comp_img(fig)
+
+    def on_press(event):
+        if event.key == 'pageup':
+            print("x keypress")
+            fig.ind_psa += 1
+            if fig.ind_psa >= fig.num_psa:
+                fig.ind_psa = 0
+                fig.ind_psg += 1
+                if fig.ind_psg >= fig.num_psg:
+                    fig.ind_psg = 0
+        elif event.key == 'pagedown':
+            fig.ind_psa -= 1
+            if fig.ind_psa < 0:
+                fig.ind_psa = fig.num_psa - 1
+                fig.ind_psg -= 1
+                if fig.ind_psg < 0:
+                    fig.ind_psg = fig.num_psg - 1
+        elif event.key == 'up':
+            fig.state_offs[fig.ind_psg, fig.ind_psa, 1] += 0.25
+        elif event.key == 'down':
+            fig.state_offs[fig.ind_psg, fig.ind_psa, 1] -= 0.25
+        elif event.key == 'left':
+            fig.state_offs[fig.ind_psg, fig.ind_psa, 0] -= 0.25
+        elif event.key == 'right':
+            fig.state_offs[fig.ind_psg, fig.ind_psa, 0] += 0.25
+        elif event.key == 'i':
+            print("Interpolating offset values from PSG, PSA (0,0) to ({:d}, {:d})".format(fig.num_psg, fig.num_psa))
+
+            fig.state_offs[:, 0] = np.interp(np.arange(fig.num_psg), [0, fig.num_psg - 1], fig.state_offs[(0, -1), 0])
+            fig.state_offs[:, 1] = np.interp(np.arange(fig.num_psg), [0, fig.num_psg - 1], fig.state_offs[(0, -1), 1])
+            fig.state_offs = np.around(fig.state_offs, 2)
+        elif event.key == 'enter':
+            print("Saving image offsets to file")
+
+            with open("meta.json", 'w') as file:
+                json.dump({'StateOffsets': fig.state_offs.tolist()}, file)
+
+
+        xl = plt.xlim()
+        yl = plt.ylim()
+        plt.cla()
+
+        plot_state_comp_img(fig)
+
+        plt.xlim(xl)
+        plt.ylim(yl)
+        fig.canvas.draw()
+
+
+    fig.canvas.mpl_connect('key_press_event', on_press)
+    # ax.plot([1, 2, 3], [10, 50, 100])
+
+    fig.show()
+    # rect.add_state('square')
+    plt.show()
 
 
 def make_mosaic_img(data=None, mask=None, ij=None, pad=0.02, remap=True,
