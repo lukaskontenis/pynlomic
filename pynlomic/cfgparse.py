@@ -103,9 +103,9 @@ def get_chan_det_type(config, chan_ind):
     TODO: The function should determine the detector from the config file.
     """
     validate_chan_idx(config, chan_ind)
-    if(chan_ind == 0 or chan_ind == 1):
+    if chan_ind == 0 or chan_ind == 1:
         chan_type = DetectorType.Voltage
-    elif(chan_ind == 2 or chan_ind == 3):
+    elif chan_ind == 2 or chan_ind == 3:
         chan_type = DetectorType.Counter
     return chan_type
 
@@ -342,7 +342,7 @@ def get_px_time(config):
     """Get pixel dwell time time in seconds."""
     frame_t_s = get_scan_frame_time(config)
     res = get_scan_resolution(config)
-    if(frame_t_s is None or res is None):
+    if frame_t_s is None or res is None:
         print("Cannot determine pixel time")
         return None
     return frame_t_s/res/res
@@ -370,11 +370,11 @@ def get_scan_resolution(config):
     nr = get_head_val(config, "Scan Geometry", "Lines")
     nc = get_head_val(config, "Scan Geometry", "Columns")
 
-    if(nr is None or nc is None):
+    if nr is None or nc is None:
         nr = get_head_val(config, "Scan", "Lines")
         nc = get_head_val(config, "Scan", "Columns")
 
-    if(nr is None or nc is None):
+    if nr is None or nc is None:
         print("Cannot find scan resolution in header")
         return None
 
@@ -387,10 +387,12 @@ def get_scan_resolution(config):
 
 
 def get_scan_field_size_calib_flag(config):
+    """Get scan field size calibration validity flag."""
     return get_head_val(config, "Calibration", "Scan field calib valid")
 
 
 def get_scan_field_size_calib_date(config):
+    """Get scan field calibration date."""
     return get_head_val(config, "Calibration", "Scan field calib date")
 
 
@@ -407,14 +409,16 @@ def get_scan_field_calib_corr(config, **kwargs):
 
     calib_date = get_scan_field_size_calib_date(config)
 
-    if get_microscope_name(config) is 'LCM1' and calib_date < datetime(2018, 4, 4):
-        if verbosity is 'info':
+    if get_microscope_name(config) == 'LCM1' \
+            and calib_date < datetime(2018, 4, 4):
+        if verbosity == 'info':
             print("Scan field size calibration for LCM1 is outdated, "
                   "using 0.785x correction factor.")
         return 0.785
     else:
-        if verbosity is 'warn':
-            print("Cannot determine whether scan field calibration is valid. Assuming it is.")
+        if verbosity == 'warn':
+            print("Cannot determine whether scan field calibration is valid. "
+                  "Assuming it is.")
 
     return 1.0
 
@@ -434,7 +438,7 @@ def get_scan_px_sz(config, **kwargs):
 
     field_sz_um = get_scan_field_size(config, **kwargs)
     img_res_col = get_scan_resolution(config)
-    if(field_sz_um is None or img_res_col is None):
+    if field_sz_um is None or img_res_col is None:
         print("Cannot determine pixel size")
         return None
     else:
@@ -484,8 +488,8 @@ def get_idx_mask(config, chan_sel):
         sec = get_data_store_entry(config, indd)
         chan_str = sec.get('Channel', None)
 
-        if(not isnone(chan_str) and (chan_str.find("AI") != -1
-                                     or chan_str.find("CNT") != -1)):
+        if not isnone(chan_str) and (chan_str.find("AI") != -1
+                                     or chan_str.find("CNT") != -1):
             # Channel names are strings
             chan = chan_str.strip('"')
         else:
@@ -605,7 +609,7 @@ def get_cfg_range(config, chan_id=2):
 def get_cfg_gamma(config, ch=2):
     """Get the config gamma value for a given channel."""
     gamma = get_head_val(config, "Channel " + str(ch), "Gamma")
-    if(gamma == '' or gamma is None):
+    if gamma == '' or gamma is None:
         return None
     return float(gamma.strip('"'))
 
@@ -653,7 +657,8 @@ def get_data_type(config=None, file_name=None):
 
 def print_data_info(config=None, preffix=''):
     """Print information about the dataset."""
-    print(preffix + "Microscope name: {:s}".format(get_microscope_name(config)))
+    print(preffix + "Microscope name: {:s}".format(
+        get_microscope_name(config)))
     print(preffix + "Sample name: {:s}".format(get_sample_name(config)))
 
     dtype = get_data_type(config=config)
@@ -669,8 +674,10 @@ def print_data_info(config=None, preffix=''):
         else:
             print(get_chan_name(config, ch_ind))
 
-    print(preffix + "Scan field size: {:.0f} µm".format(get_scan_field_size(config)))
-    print(preffix + "Field size calibrated: {:s}".format(str(get_scan_field_size_calib_flag(config))))
+    print(preffix + "Scan field size: {:.0f} µm".format(
+        get_scan_field_size(config)))
+    print(preffix + "Field size calibrated: {:s}".format(
+        str(get_scan_field_size_calib_flag(config))))
 
     frame_t = get_scan_frame_time(config)
     scan_t = get_total_scan_time(config)
@@ -697,7 +704,8 @@ def print_data_info(config=None, preffix=''):
     print(preffix + "Maximum pixel count limits:")
     print(preffix + "\tRep. rate: {:d} c.".format(limits.RepRate))
     print(preffix + "\tSingle-pulse: {:d} c.".format(limits.SinglePulse))
-    print(preffix + "\tCount linearity, 10% loss: {:d} c.".format(limits.CountLinearity))
+    print(preffix + "\tCount linearity, 10% loss: {:d} c.".format(
+        limits.CountLinearity))
 
     if dtype == DataType.ZStack:
         print("\n")
